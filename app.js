@@ -10,6 +10,7 @@ const AppState = {
   profile: {
     age: 30,
     hrRest: 55,
+    weightKg: 78,
     barraMod: 'roxa',
     barraModLabel: 'Superband Roxa'
   },
@@ -78,6 +79,70 @@ function releaseWakeLock() {
   }
 }
 
+// Dead Hang Timer (Resistência de Pegada para o TAF)
+let deadHangInterval = null;
+let deadHangSeconds = 0;
+
+function startDeadHang(seconds) {
+  getAudioContext();
+  cancelDeadHang();
+  
+  deadHangSeconds = seconds;
+  const box = document.getElementById('dead-hang-active-box');
+  const clock = document.getElementById('dead-hang-clock');
+  
+  if (box) box.classList.remove('hidden');
+  if (clock) clock.innerText = `${deadHangSeconds}s`;
+
+  playBeep(1200, 0.3); // início
+  speakVoice("Começou o Dead Hang. Segure firme na barra!");
+
+  deadHangInterval = setInterval(() => {
+    deadHangSeconds--;
+    if (clock) clock.innerText = `${deadHangSeconds}s`;
+
+    if (deadHangSeconds === 3 || deadHangSeconds === 2 || deadHangSeconds === 1) {
+      playBeep(800, 0.1);
+    }
+
+    if (deadHangSeconds <= 0) {
+      clearInterval(deadHangInterval);
+      playBeep(1400, 0.5);
+      speakVoice("Excelente! Pegada fortalecida com sucesso!");
+      if (clock) clock.innerText = "Concluído!";
+      setTimeout(() => {
+        if (box) box.classList.add('hidden');
+      }, 3000);
+    }
+  }, 1000);
+}
+
+function cancelDeadHang() {
+  if (deadHangInterval) {
+    clearInterval(deadHangInterval);
+    deadHangInterval = null;
+  }
+  const box = document.getElementById('dead-hang-active-box');
+  if (box) box.classList.add('hidden');
+}
+
+// Contador de Ciclo de Simulado Real (A cada 8 treinos de Ficha A)
+function updateCycleBadge() {
+  const badge = document.getElementById('cycle-count-text');
+  if (!badge) return;
+
+  const countA = AppState.history.filter(h => h.ficha === 'A').length;
+  const currentInCycle = (countA % 8) + 1;
+
+  if (currentInCycle === 8) {
+    badge.innerText = "Simulado Hoje!";
+    badge.className = "text-rose-400 font-bold animate-pulse";
+  } else {
+    badge.innerText = `${currentInCycle} / 8`;
+    badge.className = "text-amber-400 font-bold";
+  }
+}
+
 function forceReloadApp() {
   const btn = document.getElementById('btn-force-reload');
   if (btn) {
@@ -97,6 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
   checkUrlSyncHash();
   loadFromLocalStorage();
   checkCalibrationStatus();
+  updateCycleBadge();
   calculateHeartZones();
   renderFichaCard('A');
   updateDesmameWidget();
@@ -137,6 +203,7 @@ function saveToLocalStorage() {
   };
   localStorage.setItem('TAF_SOVIETICO_DATA', JSON.stringify(data));
   updateStatsCounters();
+  updateCycleBadge();
   updateCharts();
 }
 
@@ -157,8 +224,10 @@ function loadFromLocalStorage() {
 
   const ageInput = document.getElementById('fc-idade');
   const restInput = document.getElementById('fc-repouso');
+  const weightInput = document.getElementById('sim-weight');
   if (ageInput) ageInput.value = AppState.profile.age;
   if (restInput) restInput.value = AppState.profile.hrRest;
+  if (weightInput) weightInput.value = AppState.profile.weightKg || 78;
 }
 
 // ============================================================
@@ -197,6 +266,7 @@ function switchTab(tabId) {
 function saveSimulado(e) {
   e.preventDefault();
   const date = document.getElementById('sim-date').value || new Date().toISOString().split('T')[0];
+  const weightKg = parseFloat(document.getElementById('sim-weight')?.value) || AppState.profile.weightKg || 78;
   const barraMax = parseInt(document.getElementById('sim-barra').value) || 0;
   const barraMod = document.getElementById('sim-barra-mod').value;
   const flexaoMax = parseInt(document.getElementById('sim-flexao').value) || 0;
@@ -209,6 +279,7 @@ function saveSimulado(e) {
   let abdTarget = Math.max(5, Math.floor(abdMax * 0.20));
 
   AppState.isCalibrated = true;
+  AppState.profile.weightKg = weightKg;
   AppState.targets.A.barraReps = barraTarget;
   AppState.targets.A.barraMod = barraMod;
   AppState.targets.A.abdReps = abdTarget;
@@ -218,6 +289,7 @@ function saveSimulado(e) {
   const simRecord = {
     id: Date.now(),
     date,
+    weightKg,
     barraMax,
     barraMod,
     barraTarget,
@@ -251,7 +323,7 @@ function renderSimuladosTable() {
 
   tbody.innerHTML = AppState.simulados.map(s => `
     <tr class="hover:bg-[#151a26]/60 transition">
-      <td class="py-2 px-2.5 text-white">${s.date}</td>
+      <td class="py-2 px-2.5 text-white">${s.date} <span class="text-[9px] text-slate-500 block">${s.weightKg ? `${s.weightKg} kg` : ''}</span></td>
       <td class="py-2 px-2.5 text-slate-200">${s.barraMax} reps <span class="text-[10px] text-slate-400">(${getAssistanceLabel(s.barraMod, 0)})</span></td>
       <td class="py-2 px-2.5 text-rose-400 font-bold">${s.barraTarget} rep</td>
       <td class="py-2 px-2.5 text-slate-200">${s.flexaoMax} reps</td>
@@ -413,8 +485,8 @@ function renderFichaCard(fichaKey) {
     container.innerHTML = `
       <div class="flex flex-wrap items-center justify-between border-b border-[#1e2638] pb-2.5 gap-2">
         <div>
-          <span class="text-[10px] font-mono font-bold text-rose-400 uppercase tracking-wider block">Sessão do Dia</span>
-          <h2 class="text-sm md:text-base font-bold text-white">Ficha A: Barra Fixa + Abdominal + Corrida</h2>
+          <span class="text-[10px] font-mono font-bold text-rose-400 uppercase tracking-wider block">Ficha A Blindada • 4 Blocos Científicos</span>
+          <h2 class="text-sm md:text-base font-bold text-white">Barra Fixa + Abdominal + Pegada + Corrida</h2>
         </div>
         <div class="flex items-center gap-1.5">
           <button onclick="openManualModal('A')" class="btn-athletic px-2.5 py-1.5 rounded bg-[#151a26] hover:bg-[#1e2638] text-xs text-slate-300 border border-[#1e2638]">
@@ -426,35 +498,33 @@ function renderFichaCard(fichaKey) {
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs">
-        <div class="card-subtle p-3">
-          <span class="text-[10px] text-slate-400 uppercase font-mono block">1. Aquecimento</span>
-          <div class="text-xs font-semibold text-white mt-0.5">10 a 15 reps leves</div>
-          <span class="text-[10px] text-slate-500 mt-0.5 block">1 min descanso antes do EMOM</span>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs font-mono">
+        <!-- BLOCO 1: FORÇA PURA -->
+        <div class="card-subtle p-2.5 border-amber-500/30 bg-amber-950/10">
+          <span class="text-[9px] text-amber-400 uppercase font-bold block">1. Força Pura (3 min)</span>
+          <div class="text-white font-bold text-[11px] mt-0.5">3x Excêntricas 5s</div>
+          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">Pule e desça em 5 segundos sem elástico. Constrói arrancada inicial.</span>
         </div>
 
-        <div class="card-subtle p-3 border-rose-900/60 bg-rose-950/10">
-          <span class="text-[10px] text-rose-400 uppercase font-mono font-bold block">2. Bloco EMOM (40 Minutos)</span>
-          <div class="space-y-1 mt-1 text-[11px] font-mono">
-            <div class="flex justify-between">
-              <span class="text-slate-400">Min. Ímpares (Barra):</span>
-              <span class="text-white font-bold">${t.barraReps} rep (${getAssistanceLabel(t.barraMod, t.barraExtraKg)})</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-slate-400">Min. Pares (Abdominal):</span>
-              <span class="text-white font-bold">${t.abdReps} reps ${t.abdExtraKg > 0 ? `(+${t.abdExtraKg}kg)` : ''}</span>
-            </div>
-            <span class="text-[10px] text-amber-300 block pt-0.5 font-sans">Minutos 39 e 40: até a falha técnica</span>
-          </div>
+        <!-- BLOCO 2: DENSIDADE SUBMÁXIMA -->
+        <div class="card-subtle p-2.5 border-rose-900/60 bg-rose-950/10">
+          <span class="text-[9px] text-rose-400 uppercase font-bold block">2. Densidade (40' EMOM)</span>
+          <div class="text-white font-bold text-[11px] mt-0.5">${t.barraReps} Barra / ${t.abdReps} Abd</div>
+          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">Com ${getAssistanceLabel(t.barraMod, t.barraExtraKg)}. Min 39/40 na falha.</span>
         </div>
 
-        <div class="card-subtle p-3">
-          <span class="text-[10px] text-emerald-400 uppercase font-mono block">3. Corrida Contínua (20 Min)</span>
-          <div class="space-y-0.5 mt-1 text-[11px] font-mono text-slate-300">
-            <div>5' Z2 (${z2Range})</div>
-            <div>10' Z3 (${z3Range})</div>
-            <div>5' Z2 (${z2Range})</div>
-          </div>
+        <!-- BLOCO 3: DEAD HANG -->
+        <div class="card-subtle p-2.5 border-blue-500/30 bg-blue-950/10">
+          <span class="text-[9px] text-blue-400 uppercase font-bold block">3. Pegada (2 min)</span>
+          <div class="text-white font-bold text-[11px] mt-0.5">2x 30s Dead Hang</div>
+          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">Pendurado estático na barra para não abrir a mão na prova.</span>
+        </div>
+
+        <!-- BLOCO 4: CORRIDA -->
+        <div class="card-subtle p-2.5 border-emerald-500/30 bg-emerald-950/10">
+          <span class="text-[9px] text-emerald-400 uppercase font-bold block">4. Corrida (20 min)</span>
+          <div class="text-white font-bold text-[11px] mt-0.5">5' Z2 + 10' Z3 + 5' Z2</div>
+          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">Ou execute o treino prescrito pela sua Assessoria.</span>
         </div>
       </div>
 

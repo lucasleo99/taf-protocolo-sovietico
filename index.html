@@ -69,6 +69,12 @@
 
       <!-- Status e Controles -->
       <div class="flex items-center space-x-2 text-xs">
+        <!-- Indicador de Ciclo de Simulado -->
+        <div id="header-cycle-badge" class="hidden md:flex bg-[#10141e] px-2.5 py-1 rounded-md border border-[#1e2638] items-center gap-1.5 font-mono text-[11px]" title="Ciclo até o próximo Simulado Oficial">
+          <span class="text-slate-400">Ciclo:</span>
+          <span id="cycle-count-text" class="text-amber-400 font-bold">1 / 8</span>
+        </div>
+
         <div id="header-status-badge" class="hidden sm:flex bg-[#10141e] px-2.5 py-1 rounded-md border border-[#1e2638] items-center gap-2">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-status-dot"></span>
           <span id="header-level-desc" class="text-slate-300 text-[11px] font-medium font-mono">Calibrando...</span>
@@ -327,6 +333,32 @@
           Execute o máximo de repetições com boa técnica. O resultado atualizará seu próximo treino.
         </div>
 
+        <!-- FINALIZADOR DE PEGADA (DEAD HANG) -->
+        <div id="dead-hang-section" class="border-t border-[#1e2638] pt-4 mt-4">
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#151a26]/70 p-3.5 rounded-xl border border-[#1e2638]">
+            <div class="text-left">
+              <span class="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-wider block">Finalizador de Pegada (Obrigatório TAF)</span>
+              <span class="text-xs font-semibold text-white block mt-0.5">Dead Hang Estático na Barra (30s)</span>
+              <span class="text-[10px] text-slate-400 block">Caleja as mãos e fortalece os antebraços para não abrir a pegada na prova.</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="startDeadHang(30)" id="btn-deadhang-30" class="btn-athletic px-3 py-1.5 rounded-lg bg-[#10141e] hover:bg-[#1e2638] border border-[#1e2638] text-amber-300 font-mono text-xs font-bold">
+                Iniciar 30s
+              </button>
+              <button onclick="startDeadHang(45)" id="btn-deadhang-45" class="btn-athletic px-3 py-1.5 rounded-lg bg-[#10141e] hover:bg-[#1e2638] border border-[#1e2638] text-slate-300 font-mono text-xs font-bold">
+                Iniciar 45s
+              </button>
+            </div>
+          </div>
+
+          <!-- Countdown do Dead Hang Ativo -->
+          <div id="dead-hang-active-box" class="hidden mt-3 p-4 rounded-xl bg-amber-950/20 border border-amber-500/40 text-center animate-status-dot">
+            <span class="text-xs text-amber-300 font-bold uppercase tracking-wider block font-mono">Segure Firme na Barra</span>
+            <div id="dead-hang-clock" class="text-4xl font-black font-mono-numbers text-white my-1">30s</div>
+            <button onclick="cancelDeadHang()" class="text-[10px] text-slate-400 hover:text-white underline font-mono">Cancelar Dead Hang</button>
+          </div>
+        </div>
+
       </div>
 
     </section>
@@ -351,6 +383,11 @@
           <div>
             <label class="text-slate-300 font-medium block mb-1">Data do Teste</label>
             <input type="date" id="sim-date" required class="w-full bg-[#151a26] border border-[#1e2638] rounded-md px-2.5 py-1.5 text-white focus:outline-none focus:border-rose-500">
+          </div>
+
+          <div>
+            <label class="text-slate-300 font-medium block mb-1">Seu Peso Atual (kg)</label>
+            <input type="number" step="0.5" id="sim-weight" placeholder="ex: 78.5" required class="w-full bg-[#151a26] border border-[#1e2638] rounded-md px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-rose-500">
           </div>
 
           <div>
