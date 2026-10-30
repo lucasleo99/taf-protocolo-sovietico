@@ -574,22 +574,70 @@
 
       <!-- Estrutura de Treinos e Assessoria -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 text-xs">
-        <div class="card-clean p-4 space-y-2">
-          <h3 class="font-bold text-white uppercase text-[11px] tracking-wider border-b border-[#1e2638] pb-1.5">
-            Estrutura dos Treinos de Corrida
-          </h3>
+        <div class="card-clean p-4 space-y-2.5">
+          <div class="flex items-center justify-between border-b border-[#1e2638] pb-1.5">
+            <h3 class="font-bold text-white uppercase text-[11px] tracking-wider">
+              Cronograma Semanal Integrado
+            </h3>
+            <button onclick="openLegsModal()" class="text-[10px] text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 font-mono">
+              <i data-lucide="shield" class="w-3 h-3 text-amber-400"></i> Rotina Pernas
+            </button>
+          </div>
           <div class="space-y-1.5 font-mono text-[11px] text-slate-300">
-            <div class="p-2 rounded bg-[#151a26]">
-              <span class="text-rose-400 font-bold block">Ficha A (20 min contínua):</span>
-              5 min Z2 &rarr; 10 min Z3 (Ritmo) &rarr; 5 min Z2
+            <div class="p-1.5 rounded bg-[#151a26] flex justify-between items-center">
+              <div>
+                <span class="text-rose-400 font-bold block">Segunda: Ficha A</span>
+                <span class="text-[10px] text-slate-400">EMOM 40' Barra + Abd + Pegada</span>
+              </div>
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-[#10141e] text-slate-400 border border-[#1e2638]">Força</span>
             </div>
-            <div class="p-2 rounded bg-[#151a26]">
-              <span class="text-amber-400 font-bold block">Ficha B.1 (Tiros Curtos - 52 min):</span>
-              Aquec. 5' Z2 + 2' cam. + 20x [30" tiro / 90" cam.] + 5' Z2
+
+            <div class="p-1.5 rounded bg-[#151a26] flex justify-between items-center">
+              <div>
+                <span class="text-amber-300 font-bold block">Terça: Regenerativo + Pernas</span>
+                <span class="text-[10px] text-slate-400">Corrida Z2 + Fortalecimento (25-30m)</span>
+              </div>
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">Assess. + Pernas</span>
             </div>
-            <div class="p-2 rounded bg-[#151a26]">
-              <span class="text-sky-400 font-bold block">Ficha B.2 (Tiros Longos - 52 min):</span>
-              Aquec. 5' Z2 + 2' cam. + 8x [2' tiro / 3' cam.] + 5' Z2
+
+            <div class="p-1.5 rounded bg-[#151a26] flex justify-between items-center">
+              <div>
+                <span class="text-sky-400 font-bold block">Quarta: Ficha C</span>
+                <span class="text-[10px] text-slate-400">EMOM 20' Flexão de Braço</span>
+              </div>
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-[#10141e] text-slate-400 border border-[#1e2638]">Flexão</span>
+            </div>
+
+            <div class="p-1.5 rounded bg-[#151a26] flex justify-between items-center">
+              <div>
+                <span class="text-rose-400 font-bold block">Quinta: Intervalado (Tiros)</span>
+                <span class="text-[10px] text-slate-400">Velocidade e VO2 Máx no Garmin</span>
+              </div>
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-300 border border-rose-500/30">Assessoria</span>
+            </div>
+
+            <div class="p-1.5 rounded bg-[#151a26] flex justify-between items-center">
+              <div>
+                <span class="text-amber-300 font-bold block">Sexta: Ficha A + Pernas</span>
+                <span class="text-[10px] text-slate-400">EMOM 40' Barra + Abd + Fortalecimento</span>
+              </div>
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">Força + Pernas</span>
+            </div>
+
+            <div class="p-1.5 rounded bg-[#151a26] flex justify-between items-center">
+              <div>
+                <span class="text-emerald-400 font-bold block">Sábado: Rodagem</span>
+                <span class="text-[10px] text-slate-400">Ritmo confortável contínuo (Z2/Z3)</span>
+              </div>
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">Assessoria</span>
+            </div>
+
+            <div class="p-1.5 rounded bg-[#151a26] flex justify-between items-center">
+              <div>
+                <span class="text-emerald-400 font-bold block">Domingo: Longão</span>
+                <span class="text-[10px] text-slate-400">Endurance e base aeróbica</span>
+              </div>
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">Assessoria</span>
             </div>
           </div>
         </div>
@@ -790,6 +838,105 @@
     </div>
   </div>
 
-  <script src="app.js?v=3.0"></script>
+  <!-- MODAL FORTALECIMENTO DE PERNAS (INFERIORES) -->
+  <div id="modal-legs" class="fixed inset-0 z-50 hidden modal-overlay flex items-center justify-center p-4" onclick="if(event.target === this) closeLegsModal()">
+    <div class="bg-[#10141e] rounded-xl border border-[#1e2638] max-w-lg w-full p-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeLegsModal()" class="absolute top-3.5 right-3.5 text-slate-400 hover:text-white">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+      
+      <div class="flex items-center gap-2 mb-1">
+        <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono">
+          25 a 30 Minutos • Terça e Sexta
+        </span>
+      </div>
+      <h3 class="text-sm md:text-base font-bold text-white mb-1">
+        Fortalecimento de Membros Inferiores (Pré-Hab TAF)
+      </h3>
+      <p class="text-[11px] text-slate-400 mb-3 leading-relaxed">
+        Rotina específica para corredores e concurseiros: blinda a tíbia contra canelite, estabiliza joelhos e tornozelos e aumenta a propulsão na corrida sem cansar as costas para a barra.
+      </p>
+
+      <div class="space-y-2.5 text-xs">
+        <!-- Exercício 1 -->
+        <div class="p-3 rounded-lg bg-[#151a26] border border-[#1e2638] space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-white flex items-center gap-1.5 text-[11px]">
+              <span class="w-4 h-4 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center text-[10px] font-mono">1</span>
+              Agachamento Búlgaro (ou Passada / Afundo)
+            </span>
+            <span class="text-[10px] font-mono font-bold text-amber-300">3x 8 a 10 reps / perna</span>
+          </div>
+          <p class="text-[11px] text-slate-400">
+            Apoie o peito de um pé atrás num banco ou cadeira. Desça controlando o joelho. Constrói força unilateral idêntica à passada da corrida e estabiliza o quadril.
+          </p>
+        </div>
+
+        <!-- Exercício 2 -->
+        <div class="p-3 rounded-lg bg-[#151a26] border border-[#1e2638] space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-white flex items-center gap-1.5 text-[11px]">
+              <span class="w-4 h-4 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center text-[10px] font-mono">2</span>
+              Panturrilha Unilateral em Degrau (Excêntrica Lenta)
+            </span>
+            <span class="text-[10px] font-mono font-bold text-amber-300">3x 12 a 15 reps / perna</span>
+          </div>
+          <p class="text-[11px] text-slate-400">
+            Suba na ponta do pé em 1s e <strong class="text-white">desça freando em 3s</strong> alongando o calcanhar abaixo da linha do degrau. Proteção máxima do tendão de Aquiles e fáscia plantar.
+          </p>
+        </div>
+
+        <!-- Exercício 3 -->
+        <div class="p-3 rounded-lg bg-[#151a26] border border-[#1e2638] space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-white flex items-center gap-1.5 text-[11px]">
+              <span class="w-4 h-4 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center text-[10px] font-mono">3</span>
+              Tibial Anterior na Parede (Anti-Canelite)
+            </span>
+            <span class="text-[10px] font-mono font-bold text-emerald-400">3x 15 a 20 reps</span>
+          </div>
+          <p class="text-[11px] text-slate-400">
+            Encoste as costas e quadril na parede, com os calcanhares cerca de 30-40cm à frente. Puxe a ponta dos pés para cima em direção à canela, pause 1s no topo e desça. <strong class="text-white">O escudo definitivo contra canelite.</strong>
+          </p>
+        </div>
+
+        <!-- Exercício 4 -->
+        <div class="p-3 rounded-lg bg-[#151a26] border border-[#1e2638] space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-white flex items-center gap-1.5 text-[11px]">
+              <span class="w-4 h-4 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center text-[10px] font-mono">4</span>
+              Ponte Unilateral / Elevação Pélvica
+            </span>
+            <span class="text-[10px] font-mono font-bold text-amber-300">3x 10 a 12 reps / perna</span>
+          </div>
+          <p class="text-[11px] text-slate-400">
+            Deitado de costas, flexione os joelhos. Eleve o quadril apoiado em uma só perna e aperte o glúteo no topo por 2 segundos. Impede que o joelho caia para dentro (valgo dinâmico) ao aterrissar na corrida.
+          </p>
+        </div>
+
+        <!-- Exercício 5 -->
+        <div class="p-3 rounded-lg bg-[#151a26] border border-[#1e2638] space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-white flex items-center gap-1.5 text-[11px]">
+              <span class="w-4 h-4 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center text-[10px] font-mono">5</span>
+              Prancha Lateral (ou Abdução de Quadril)
+            </span>
+            <span class="text-[10px] font-mono font-bold text-amber-300">2x 30s cada lado</span>
+          </div>
+          <p class="text-[11px] text-slate-400">
+            Sustente o corpo alinhado de lado sobre o antebraço. Fortalece o glúteo médio e os oblíquos, mantendo a bacia firme e nivelada a cada passada dos 2.400m.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-[#1e2638] flex justify-end">
+        <button onclick="closeLegsModal()" class="btn-athletic px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs">
+          Entendido / Fechar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=3.1"></script>
 </body>
 </html>

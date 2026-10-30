@@ -15,13 +15,13 @@ const AppState = {
     barraModLabel: 'Superband Roxa'
   },
   schedule: {
-    1: { ficha: 'A', name: 'Segunda-feira', label: 'Ficha A: Barra + Abdominal + Corrida 20\'', type: 'workout' },
-    2: { ficha: 'ASS', name: 'Terça-feira', label: 'Treino da Assessoria de Corrida', type: 'assessoria' },
-    3: { ficha: 'C', name: 'Quarta-feira', label: 'Ficha C: Flexão de Braço + Trote 40\'', type: 'workout' },
-    4: { ficha: 'OFF', name: 'Quinta-feira', label: 'Descanso Ativo / Recuperação', type: 'rest' },
-    5: { ficha: 'B', name: 'Sexta-feira', label: 'Ficha B: Tiros Intervalados (ou Ficha A)', type: 'workout' },
-    6: { ficha: 'ASS', name: 'Sábado', label: 'Longão com a Assessoria', type: 'assessoria' },
-    0: { ficha: 'OFF', name: 'Domingo', label: 'Descanso Total (Regeneração Neural)', type: 'rest' }
+    1: { ficha: 'A', name: 'Segunda-feira', title: 'Ficha A', badge: 'Ficha A', badgeSub: 'Barra/Abd', label: 'Ficha A: Barra + Abdominal (Pegada e Força)', type: 'workout', hasLegs: false, detail: 'EMOM 40 min alternado (Barra + Abdominal Remador) + Dead Hang 2x 30s.' },
+    2: { ficha: 'ASS', name: 'Terça-feira', title: 'Regen. + Pernas', badge: 'Regen.', badgeSub: '+ Pernas', label: 'Corrida Regenerativa + Fortalecimento de Pernas (25-30 min)', type: 'assessoria', hasLegs: true, detail: 'Corrida leve em Z2 (Garmin/TrainingPeaks) + Fortalecimento de membros inferiores (25-30 min).' },
+    3: { ficha: 'C', name: 'Quarta-feira', title: 'Ficha C', badge: 'Ficha C', badgeSub: 'Flexão', label: 'Ficha C: Flexão de Braço (20 min EMOM)', type: 'workout', hasLegs: false, detail: 'EMOM 20 min de Flexão de Braço submáxima (peitoral e tríceps).' },
+    4: { ficha: 'ASS', name: 'Quinta-feira', title: 'Intervalado', badge: 'Tiros', badgeSub: 'Assessoria', label: 'Corrida Intervalada (Tiros da Assessoria)', type: 'assessoria', hasLegs: false, detail: 'Treino de velocidade / tiros para VO2 Máx prescrito pela assessoria no Garmin.' },
+    5: { ficha: 'A', name: 'Sexta-feira', title: 'Ficha A + Pernas', badge: 'Ficha A', badgeSub: '+ Pernas', label: 'Ficha A + Fortalecimento de Pernas (25-30 min)', type: 'workout', hasLegs: true, detail: 'Ficha A (EMOM 40 min Barra + Abd) + Fortalecimento de pernas para fechar o ciclo semanal de força.' },
+    6: { ficha: 'ASS', name: 'Sábado', title: 'Rodagem', badge: 'Rodagem', badgeSub: 'Assessoria', label: 'Corrida de Rodagem (Ritmo Confortável)', type: 'assessoria', hasLegs: false, detail: 'Volume aeróbico contínuo em Z2/Z3 prescrito pela Assessoria.' },
+    0: { ficha: 'ASS', name: 'Domingo', title: 'Longão', badge: 'Longão', badgeSub: 'Assessoria', label: 'Corrida Longão (Endurance / Base Aeróbica)', type: 'assessoria', hasLegs: false, detail: 'Treino longo com a Assessoria para construir resistência e fôlego para o TAF.' }
   },
   currentFicha: 'A',
   targets: {
@@ -116,23 +116,34 @@ function renderWeeklyPlanner() {
           <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
         </div>
         <div>
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center gap-1.5 flex-wrap">
             <h3 class="text-xs font-bold text-white uppercase tracking-wider">Cronograma Semanal</h3>
-            <span class="text-[9px] px-1.5 py-0.2 rounded bg-[#151a26] text-amber-300 font-mono font-bold">Hoje: ${currentPlan.name}</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded bg-[#151a26] text-amber-300 font-mono font-bold">Hoje: ${currentPlan.name}</span>
+            ${currentPlan.hasLegs ? `
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-mono font-bold flex items-center gap-1">
+                <i data-lucide="shield" class="w-2.5 h-2.5 text-amber-400"></i> + Pernas (25-30m)
+              </span>
+            ` : ''}
           </div>
           <p class="text-[11px] text-slate-400 -mt-0.5">${currentPlan.label}</p>
         </div>
       </div>
 
-      <!-- Status de Conclusão de Hoje -->
-      <div>
+      <!-- Status de Conclusão de Hoje / Ações -->
+      <div class="flex items-center gap-2">
+        ${currentPlan.hasLegs ? `
+          <button onclick="openLegsModal()" class="btn-athletic px-2.5 py-1 rounded-md bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold text-xs flex items-center gap-1 shadow-sm" title="Ver rotina de pernas">
+            <i data-lucide="shield" class="w-3 h-3 text-amber-400"></i> Treino Pernas
+          </button>
+        ` : ''}
+
         ${workoutToday ? `
           <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-950/40 border border-emerald-500/40 px-2.5 py-1 rounded-md font-mono">
-            <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i> Sessão de Hoje Concluída!
+            <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i> Concluído!
           </span>
         ` : currentPlan.type === 'rest' ? `
           <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-400 bg-[#151a26] border border-[#1e2638] px-2.5 py-1 rounded-md font-mono">
-            <i data-lucide="coffee" class="w-3.5 h-3.5 text-slate-400"></i> Dia de Recuperação
+            <i data-lucide="coffee" class="w-3.5 h-3.5 text-slate-400"></i> Recuperação
           </span>
         ` : `
           <button onclick="startTodayPlan()" class="btn-athletic px-3 py-1 rounded-md bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm">
@@ -149,25 +160,24 @@ function renderWeeklyPlanner() {
         const isToday = d === todayDay;
         const shortName = dayNamesShort[d];
 
-        let badge = item.ficha;
-        if (item.ficha === 'ASS') badge = 'Assess.';
-        if (item.ficha === 'OFF') badge = 'Descanso';
-        if (item.ficha === 'A') badge = 'Ficha A';
-        if (item.ficha === 'B') badge = 'Ficha B';
-        if (item.ficha === 'C') badge = 'Ficha C';
+        const badgeTitle = item.badge || item.ficha;
+        const badgeSub = item.badgeSub || '';
 
-        let cardClass = "border-[#1e2638] bg-[#151a26]/40 text-slate-400";
+        let cardClass = "border-[#1e2638] bg-[#151a26]/40 text-slate-400 hover:border-slate-500";
         if (isToday) {
-          cardClass = "border-rose-500/70 bg-rose-950/30 text-rose-300 ring-1 ring-rose-500/50";
+          cardClass = "border-rose-500 bg-rose-950/40 text-rose-300 ring-1 ring-rose-500/60 shadow-sm";
         }
 
         return `
-          <button onclick="selectDaySchedule(${d})" class="p-1.5 rounded-lg border ${cardClass} text-left transition flex flex-col justify-between hover:border-slate-600">
+          <button onclick="selectDaySchedule(${d})" class="p-1.5 rounded-lg border ${cardClass} text-left transition flex flex-col justify-between overflow-hidden">
             <div class="flex justify-between items-center text-[9px] font-bold uppercase w-full">
-              <span>${shortName}</span>
-              ${isToday ? `<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>` : ''}
+              <span class="${isToday ? 'text-rose-400 font-bold' : 'text-slate-400'}">${shortName}</span>
+              ${isToday ? `<span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>` : ''}
             </div>
-            <div class="text-[10px] font-bold text-white mt-1 truncate font-mono">${badge}</div>
+            <div class="mt-1">
+              <div class="text-[10px] font-bold text-white truncate leading-tight">${badgeTitle}</div>
+              ${badgeSub ? `<div class="text-[8px] ${item.hasLegs ? 'text-amber-400 font-bold' : 'text-slate-400'} truncate leading-tight mt-0.5">${badgeSub}</div>` : ''}
+            </div>
           </button>
         `;
       }).join('')}
@@ -185,8 +195,8 @@ function startTodayPlan() {
   if (!currentPlan) return;
 
   if (currentPlan.ficha === 'A' || currentPlan.ficha === 'B' || currentPlan.ficha === 'C') {
+    switchTab('treino');
     selectFicha(currentPlan.ficha);
-    // Rolagem suave até a ficha
     document.getElementById('ficha-card-container')?.scrollIntoView({ behavior: 'smooth' });
   } else if (currentPlan.ficha === 'ASS') {
     switchTab('garmin');
@@ -201,13 +211,34 @@ function selectDaySchedule(dayNumber) {
   if (!plan) return;
 
   if (plan.ficha === 'A' || plan.ficha === 'B' || plan.ficha === 'C') {
+    switchTab('treino');
     selectFicha(plan.ficha);
     document.getElementById('ficha-card-container')?.scrollIntoView({ behavior: 'smooth' });
   } else if (plan.ficha === 'ASS') {
+    if (plan.hasLegs) {
+      if (confirm(`${plan.name}: ${plan.label}\n\n• Treino de corrida leve prescrito no Garmin/TrainingPeaks.\n• Bloco de fortalecimento de pernas (25-30 min).\n\nDeseja abrir a rotina de fortalecimento de pernas agora?`)) {
+        openLegsModal();
+        return;
+      }
+    }
     switchTab('garmin');
+    document.getElementById('assessoria-form')?.scrollIntoView({ behavior: 'smooth' });
   } else {
-    alert(`${plan.name}: ${plan.label}.\n\nAproveite para hidratar bem, fazer mobilidade leve e garantir 8 horas de sono para regenerar as fibras.`);
+    alert(`${plan.name}: ${plan.label}.\n\n${plan.detail}`);
   }
+}
+
+function openLegsModal() {
+  const modal = document.getElementById('modal-legs');
+  if (modal) {
+    modal.classList.remove('hidden');
+    if (window.lucide) lucide.createIcons();
+  }
+}
+
+function closeLegsModal() {
+  const modal = document.getElementById('modal-legs');
+  if (modal) modal.classList.add('hidden');
 }
 
 // Dead Hang Timer (Resistência de Pegada para o TAF)
@@ -682,15 +713,29 @@ function renderFichaCard(fichaKey) {
           <span class="text-[10px] text-slate-400 font-sans block mt-0.5">Fique pendurado estático na barra para calejar as mãos e antebraços.</span>
         </div>
 
-        <!-- BLOCO 4: CORRIDA -->
+        <!-- BLOCO 4: CORRIDA OU FORTALECIMENTO -->
         <div class="card-subtle p-2.5 border-emerald-500/30 bg-emerald-950/10">
           <div class="flex justify-between items-center">
-            <span class="text-[9px] text-emerald-400 uppercase font-bold">Passo 4 (20 min)</span>
-            <span class="text-[9px] text-slate-500">Final</span>
+            <span class="text-[9px] text-emerald-400 uppercase font-bold">Passo 4</span>
+            <span class="text-[9px] text-slate-500">${new Date().getDay() === 5 ? 'Sexta: Pernas' : 'Final'}</span>
           </div>
-          <div class="text-white font-bold text-[11px] mt-0.5">Corrida Contínua</div>
-          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">5' Z2 + 10' Z3 + 5' Z2 (ou faça o treino prescrito pela sua Assessoria).</span>
+          <div class="text-white font-bold text-[11px] mt-0.5">${new Date().getDay() === 5 ? 'Fortalecimento Pernas' : 'Corrida Contínua'}</div>
+          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">${new Date().getDay() === 5 ? '25-30 min de pernas (búlgaro, panturrilha e tibial).' : '5\' Z2 + 10\' Z3 + 5\' Z2 (ou poupe para a corrida da Assessoria).'}</span>
         </div>
+      </div>
+
+      <!-- BANNER DE FORTALECIMENTO DE PERNAS (SEXTA-FEIRA) -->
+      <div class="p-2.5 rounded-lg bg-amber-950/20 border border-amber-500/30 flex items-center justify-between gap-2 text-xs">
+        <div class="flex items-center gap-2">
+          <i data-lucide="shield" class="w-4 h-4 text-amber-400 flex-shrink-0"></i>
+          <div>
+            <span class="text-[11px] font-bold text-amber-300 block">Sexta-feira: Ficha A + Fortalecimento de Pernas (25-30 min)</span>
+            <span class="text-[10px] text-slate-400 block">Blindagem de canelas e joelhos sem sobrecarregar a barra fixa.</span>
+          </div>
+        </div>
+        <button onclick="openLegsModal()" class="btn-athletic px-2.5 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[10px] font-bold whitespace-nowrap">
+          Ver Exercícios &rarr;
+        </button>
       </div>
 
       <!-- Configuração de Carga e Assistência -->
@@ -804,8 +849,8 @@ function renderFichaCard(fichaKey) {
             A cada minuto (do min 1 ao 19), você faz <strong class="text-white">${t.flexaoReps} flexões</strong> em 5 segundos e descansa o restante do minuto. No minuto 20, faz até a falha técnica!
           </div>
           <div class="bg-[#10141e] p-2 rounded border border-[#1e2638]">
-            <span class="text-emerald-400 font-bold block">2ª Parte: 40 Minutos de Trote Longo</span>
-            Logo após as flexões, calce o tênis e faça 40 minutos contínuos de trote confortável em Zona 2 (${z2Range}).
+            <span class="text-emerald-400 font-bold block">2ª Parte: 40' Trote (Opcional)</span>
+            No protocolo padrão há 40' de trote Z2. <em>Como você já corre 4x com assessoria (Terça, Quinta, Sábado e Domingo), faça apenas os 20' EMOM de flexão e preserve as pernas para o intervalado de Quinta!</em>
           </div>
         </div>
       </div>
