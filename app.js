@@ -485,46 +485,79 @@ function renderFichaCard(fichaKey) {
     container.innerHTML = `
       <div class="flex flex-wrap items-center justify-between border-b border-[#1e2638] pb-2.5 gap-2">
         <div>
-          <span class="text-[10px] font-mono font-bold text-rose-400 uppercase tracking-wider block">Ficha A Blindada • 4 Blocos Científicos</span>
+          <span class="text-[10px] font-mono font-bold text-rose-400 uppercase tracking-wider block">Ficha A • Duração Total: ~65 Minutos</span>
           <h2 class="text-sm md:text-base font-bold text-white">Barra Fixa + Abdominal + Pegada + Corrida</h2>
         </div>
         <div class="flex items-center gap-1.5">
           <button onclick="openManualModal('A')" class="btn-athletic px-2.5 py-1.5 rounded bg-[#151a26] hover:bg-[#1e2638] text-xs text-slate-300 border border-[#1e2638]">
             Preencher Manual
           </button>
-          <button onclick="launchWorkoutTimer('A')" class="btn-athletic px-3 py-1.5 rounded bg-rose-600 hover:bg-rose-500 text-xs font-bold text-white flex items-center gap-1.5">
+          <button onclick="launchWorkoutTimer('A')" class="btn-athletic px-3.5 py-1.5 rounded bg-rose-600 hover:bg-rose-500 text-xs font-bold text-white flex items-center gap-1.5 shadow-sm">
             <i data-lucide="play" class="w-3.5 h-3.5"></i> Iniciar no Timer
           </button>
         </div>
       </div>
 
+      <!-- EXPLICAÇÃO DIDÁTICA DO TEMPO (CLAREZA TOTAL) -->
+      <div class="p-3 rounded-lg bg-[#151a26] border border-rose-500/30 text-xs space-y-1">
+        <div class="flex items-center gap-1.5 text-rose-300 font-bold text-[11px] uppercase tracking-wide">
+          <i data-lucide="info" class="w-3.5 h-3.5 text-rose-400"></i> Como Funciona o Tempo Desta Sessão:
+        </div>
+        <p class="text-slate-300 text-[11px] leading-relaxed">
+          O bloco EMOM tem <strong class="text-white">40 minutos totais de relógio</strong> (NÃO são 40 minutos de cada!). Você reveza os exercícios a cada virada de minuto:
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1 font-mono text-[11px]">
+          <div class="bg-[#10141e] p-2 rounded border border-[#1e2638]">
+            <span class="text-rose-400 font-bold block">Minutos Ímpares (1, 3, 5, 7... 37):</span>
+            <span class="text-white">1 Barra Fixa</span> (${getAssistanceLabel(t.barraMod, t.barraExtraKg)}). Faz a barra em 3 segundos e descansa o resto do minuto. (20 séries no total).
+          </div>
+          <div class="bg-[#10141e] p-2 rounded border border-[#1e2638]">
+            <span class="text-sky-400 font-bold block">Minutos Pares (2, 4, 6, 8... 38):</span>
+            <span class="text-white">${t.abdReps} Abdominais</span>. Faz em 10 segundos e descansa o resto do minuto. (20 séries no total).
+          </div>
+        </div>
+      </div>
+
+      <!-- OS 4 BLOCOS PASSO A PASSO -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs font-mono">
         <!-- BLOCO 1: FORÇA PURA -->
         <div class="card-subtle p-2.5 border-amber-500/30 bg-amber-950/10">
-          <span class="text-[9px] text-amber-400 uppercase font-bold block">1. Força Pura (3 min)</span>
+          <div class="flex justify-between items-center">
+            <span class="text-[9px] text-amber-400 uppercase font-bold">Passo 1 (3 min)</span>
+            <span class="text-[9px] text-slate-500">Antes do EMOM</span>
+          </div>
           <div class="text-white font-bold text-[11px] mt-0.5">3x Excêntricas 5s</div>
-          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">Pule e desça em 5 segundos sem elástico. Constrói arrancada inicial.</span>
+          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">Pule até o queixo passar da barra e desça freando em 5s sem elástico. Constrói arrancada.</span>
         </div>
 
         <!-- BLOCO 2: DENSIDADE SUBMÁXIMA -->
         <div class="card-subtle p-2.5 border-rose-900/60 bg-rose-950/10">
-          <span class="text-[9px] text-rose-400 uppercase font-bold block">2. Densidade (40' EMOM)</span>
-          <div class="text-white font-bold text-[11px] mt-0.5">${t.barraReps} Barra / ${t.abdReps} Abd</div>
-          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">Com ${getAssistanceLabel(t.barraMod, t.barraExtraKg)}. Min 39/40 na falha.</span>
+          <div class="flex justify-between items-center">
+            <span class="text-[9px] text-rose-400 uppercase font-bold">Passo 2 (40 min)</span>
+            <span class="text-[9px] text-rose-300 font-bold">Principal</span>
+          </div>
+          <div class="text-white font-bold text-[11px] mt-0.5">EMOM Alternado</div>
+          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">1 Barra / ${t.abdReps} Abd revezando a cada minuto. Minutos 39 e 40 são até a falha!</span>
         </div>
 
         <!-- BLOCO 3: DEAD HANG -->
         <div class="card-subtle p-2.5 border-blue-500/30 bg-blue-950/10">
-          <span class="text-[9px] text-blue-400 uppercase font-bold block">3. Pegada (2 min)</span>
+          <div class="flex justify-between items-center">
+            <span class="text-[9px] text-blue-400 uppercase font-bold">Passo 3 (2 min)</span>
+            <span class="text-[9px] text-slate-500">Pós-EMOM</span>
+          </div>
           <div class="text-white font-bold text-[11px] mt-0.5">2x 30s Dead Hang</div>
-          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">Pendurado estático na barra para não abrir a mão na prova.</span>
+          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">Fique pendurado estático na barra para calejar as mãos e antebraços.</span>
         </div>
 
         <!-- BLOCO 4: CORRIDA -->
         <div class="card-subtle p-2.5 border-emerald-500/30 bg-emerald-950/10">
-          <span class="text-[9px] text-emerald-400 uppercase font-bold block">4. Corrida (20 min)</span>
-          <div class="text-white font-bold text-[11px] mt-0.5">5' Z2 + 10' Z3 + 5' Z2</div>
-          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">Ou execute o treino prescrito pela sua Assessoria.</span>
+          <div class="flex justify-between items-center">
+            <span class="text-[9px] text-emerald-400 uppercase font-bold">Passo 4 (20 min)</span>
+            <span class="text-[9px] text-slate-500">Final</span>
+          </div>
+          <div class="text-white font-bold text-[11px] mt-0.5">Corrida Contínua</div>
+          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">5' Z2 + 10' Z3 + 5' Z2 (ou faça o treino prescrito pela sua Assessoria).</span>
         </div>
       </div>
 
@@ -563,8 +596,8 @@ function renderFichaCard(fichaKey) {
     container.innerHTML = `
       <div class="flex flex-wrap items-center justify-between border-b border-[#1e2638] pb-2.5 gap-2">
         <div>
-          <span class="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-wider block">Sessão de Tiros</span>
-          <h2 class="text-sm md:text-base font-bold text-white">Ficha B: Intervalado (52 minutos)</h2>
+          <span class="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-wider block">Ficha B • Duração Total: 52 Minutos</span>
+          <h2 class="text-sm md:text-base font-bold text-white">Corrida Intervalada (Tiros para VO2 Máx)</h2>
         </div>
         <button onclick="openManualModal('B')" class="btn-athletic px-2.5 py-1.5 rounded bg-[#151a26] hover:bg-[#1e2638] text-xs text-slate-300 border border-[#1e2638]">
           Registrar Tiro
@@ -572,23 +605,39 @@ function renderFichaCard(fichaKey) {
       </div>
 
       <div class="flex items-center gap-2 mb-1">
-        <span class="text-slate-400 text-xs">Tipo:</span>
+        <span class="text-slate-400 text-xs">Tipo de Treino:</span>
         <div class="inline-flex rounded bg-[#151a26] p-0.5 border border-[#1e2638] text-xs font-mono">
           <button onclick="setBType('B1')" class="px-2.5 py-1 rounded font-bold ${t.type === 'B1' ? 'bg-rose-600 text-white' : 'text-slate-400'}">
-            B.1 Curto
+            B.1 Curto (30" / 90")
           </button>
           <button onclick="setBType('B2')" class="px-2.5 py-1 rounded font-bold ${t.type === 'B2' ? 'bg-slate-700 text-white' : 'text-slate-400'}">
-            B.2 Longo
+            B.2 Longo (2' / 3')
           </button>
         </div>
       </div>
 
-      <div class="card-subtle p-3 text-xs font-mono text-slate-300">
+      <div class="card-subtle p-3 text-xs space-y-2">
+        <div class="text-[11px] font-bold text-amber-300 uppercase tracking-wide">
+          Linha do Tempo dos 52 Minutos:
+        </div>
         ${t.type === 'B1' ? `
-          5' Z2 + 2' caminhada + <strong class="text-white">20x [30 seg tiro / 90 seg caminhada]</strong> + 5' Z2
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-1.5 font-mono text-[11px]">
+            <div class="p-2 rounded bg-[#10141e] border border-[#1e2638]">1. Aquecimento: 5 min Z2 leve</div>
+            <div class="p-2 rounded bg-[#10141e] border border-[#1e2638]">2. Transição: 2 min caminhada</div>
+            <div class="p-2 rounded bg-[#10141e] border border-rose-500/40 text-rose-300">3. 20 Tiros: 30" tiro / 90" caminhada (40 min)</div>
+            <div class="p-2 rounded bg-[#10141e] border border-[#1e2638]">4. Volta à calma: 5 min Z2 leve</div>
+          </div>
         ` : `
-          5' Z2 + 2' caminhada + <strong class="text-white">8x [2 min tiro / 3 min caminhada]</strong> + 5' Z2
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-1.5 font-mono text-[11px]">
+            <div class="p-2 rounded bg-[#10141e] border border-[#1e2638]">1. Aquecimento: 5 min Z2 leve</div>
+            <div class="p-2 rounded bg-[#10141e] border border-[#1e2638]">2. Transição: 2 min caminhada</div>
+            <div class="p-2 rounded bg-[#10141e] border border-sky-500/40 text-sky-300">3. 8 Tiros: 2 min forte / 3 min caminhada (40 min)</div>
+            <div class="p-2 rounded bg-[#10141e] border border-[#1e2638]">4. Volta à calma: 5 min Z2 leve</div>
+          </div>
         `}
+        <span class="text-[10px] text-slate-400 block pt-1 font-sans">
+          Nota: Se você treina com assessoria de corrida, pode substituir esta sessão pelo treino de tiros passado pelo seu treinador!
+        </span>
       </div>
     `;
   } else if (fichaKey === 'C') {
@@ -596,8 +645,8 @@ function renderFichaCard(fichaKey) {
     container.innerHTML = `
       <div class="flex flex-wrap items-center justify-between border-b border-[#1e2638] pb-2.5 gap-2">
         <div>
-          <span class="text-[10px] font-mono font-bold text-sky-400 uppercase tracking-wider block">Sessão do Dia</span>
-          <h2 class="text-sm md:text-base font-bold text-white">Ficha C: Flexão de Braço + 40' Trote Z2</h2>
+          <span class="text-[10px] font-mono font-bold text-sky-400 uppercase tracking-wider block">Ficha C • Duração Total: 60 Minutos</span>
+          <h2 class="text-sm md:text-base font-bold text-white">Flexão de Braço (20 min) + Trote Longo Z2 (40 min)</h2>
         </div>
         <div class="flex items-center gap-1.5">
           <button onclick="openManualModal('C')" class="btn-athletic px-2.5 py-1.5 rounded bg-[#151a26] hover:bg-[#1e2638] text-xs text-slate-300 border border-[#1e2638]">
@@ -609,28 +658,23 @@ function renderFichaCard(fichaKey) {
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs">
-        <div class="card-subtle p-3">
-          <span class="text-[10px] text-slate-400 uppercase font-mono block">1. Aquecimento</span>
-          <div class="text-xs font-semibold text-white mt-0.5">10 a 15 reps leves</div>
-          <span class="text-[10px] text-slate-500 mt-0.5 block">1 min descanso</span>
+      <!-- EXPLICAÇÃO DIDÁTICA DO TEMPO FICHA C -->
+      <div class="p-3 rounded-lg bg-[#151a26] border border-sky-500/30 text-xs space-y-1">
+        <div class="flex items-center gap-1.5 text-sky-300 font-bold text-[11px] uppercase tracking-wide">
+          <i data-lucide="info" class="w-3.5 h-3.5 text-sky-400"></i> Como Funciona o Tempo Desta Sessão:
         </div>
-
-        <div class="card-subtle p-3 border-sky-900/60 bg-sky-950/10">
-          <span class="text-[10px] text-sky-400 uppercase font-mono font-bold block">2. Bloco EMOM (20 Minutos)</span>
-          <div class="space-y-1 mt-1 text-[11px] font-mono">
-            <div class="flex justify-between">
-              <span class="text-slate-400">Minutos 1 a 19:</span>
-              <span class="text-white font-bold">${t.flexaoReps} reps/min ${t.flexaoExtraKg > 0 ? `(+${t.flexaoExtraKg}kg)` : ''}</span>
-            </div>
-            <span class="text-[10px] text-amber-300 block pt-0.5 font-sans">Minuto 20: até a falha técnica</span>
+        <p class="text-slate-300 text-[11px] leading-relaxed">
+          Esta sessão é dividida em dois momentos bem separados:
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1 font-mono text-[11px]">
+          <div class="bg-[#10141e] p-2 rounded border border-[#1e2638]">
+            <span class="text-sky-400 font-bold block">1ª Parte: 20 Minutos EMOM de Flexão</span>
+            A cada minuto (do min 1 ao 19), você faz <strong class="text-white">${t.flexaoReps} flexões</strong> em 5 segundos e descansa o restante do minuto. No minuto 20, faz até a falha técnica!
           </div>
-        </div>
-
-        <div class="card-subtle p-3">
-          <span class="text-[10px] text-emerald-400 uppercase font-mono block">3. Trote Longo (40 Min)</span>
-          <div class="text-xs font-bold text-white font-mono mt-0.5">40 min contínuos em Z2</div>
-          <span class="text-[10px] text-slate-400 font-mono mt-0.5 block">Faixa: ${z2Range}</span>
+          <div class="bg-[#10141e] p-2 rounded border border-[#1e2638]">
+            <span class="text-emerald-400 font-bold block">2ª Parte: 40 Minutos de Trote Longo</span>
+            Logo após as flexões, calce o tênis e faça 40 minutos contínuos de trote confortável em Zona 2 (${z2Range}).
+          </div>
         </div>
       </div>
     `;
