@@ -1,0 +1,13 @@
+{
+  "name": "taf-protocolo-sovietico",
+  "version": "1.0.0",
+  "description": "Sistema de Treinamento Inteligente baseado no Protocolo Soviético do Gabriel Halabi para TAF",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 3000 --directory .",
+    "serve": "npx serve . -p 3000"
+  },
+  "keywords": ["taf", "protocolo-sovietico", "treinamento", "emom", "garmin"],
+  "author": "Antigravity",
+  "license": "MIT"
+}

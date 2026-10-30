@@ -1,0 +1,119 @@
+/* Estilos Personalizados - TAF Protocolo Soviético */
+:root {
+  --primary: #e11d48;
+  --primary-hover: #be123c;
+  --accent-gold: #f59e0b;
+  --bg-dark: #0f172a;
+  --card-dark: #1e293b;
+  --card-border: #334155;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: #0b0f19;
+  color: #f1f5f9;
+  min-height: 100vh;
+}
+
+/* Scrollbar estilizada */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Animações de pulso para o timer */
+@keyframes pulse-timer {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-timer 1s infinite ease-in-out;
+}
+
+/* Glassmorphism sutil */
+.glass-panel {
+  background: rgba(30, 41, 59, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Botões com feedback tátil */
+.btn-pressable {
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.btn-pressable:active {
+  transform: scale(0.97);
+}
+
+/* Indicador de status do treino */
+.badge-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Formatação de números grandes para cronômetro */
+.font-mono-digits {
+  font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, Monaco, monospace;
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+}
+
+/* Destaque das zonas de FC */
+.zone-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.zone-1 { background-color: #3b82f6; color: #fff; }
+.zone-2 { background-color: #10b981; color: #fff; }
+.zone-3 { background-color: #f59e0b; color: #fff; }
+.zone-4 { background-color: #f97316; color: #fff; }
+.zone-5 { background-color: #ef4444; color: #fff; }
+
+/* Transições suaves de tabs */
+.tab-content {
+  display: none;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+.tab-content.active {
+  display: block;
+  opacity: 1;
+}
+
+/* Modal overlays */
+.modal-overlay {
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+}
