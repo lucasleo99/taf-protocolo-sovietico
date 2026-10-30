@@ -50,6 +50,20 @@ const AppState = {
   simulados: []
 };
 
+// Forçar Atualização Limpando Cache do Celular
+function forceReloadApp() {
+  const btn = document.getElementById('btn-force-reload');
+  if (btn) {
+    const icon = btn.querySelector('i');
+    if (icon) icon.classList.add('animate-spin');
+  }
+
+  // Gera timestamp para forçar o navegador a baixar a versão mais nova do servidor
+  setTimeout(() => {
+    window.location.href = window.location.origin + window.location.pathname + '?reload=' + Date.now();
+  }, 250);
+}
+
 // Wake Lock API (Impede celular de desligar tela no treino)
 let wakeLock = null;
 

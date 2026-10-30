@@ -9,6 +9,9 @@
   <meta name="theme-color" content="#090d16">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
 
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -64,12 +67,18 @@
         </div>
       </div>
 
-      <!-- Indicadores Rápidos -->
-      <div class="flex items-center space-x-2 md:space-x-4 text-xs">
-        <div id="header-status-badge" class="bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 flex items-center gap-2">
+      <!-- Indicadores Rápidos e Botão Atualizar -->
+      <div class="flex items-center space-x-2 text-xs">
+        <div id="header-status-badge" class="hidden sm:flex bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 items-center gap-2">
           <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
           <span id="header-level-desc" class="text-slate-300 text-[11px] font-semibold">Calibrando nível...</span>
         </div>
+
+        <!-- Botão Forçar Atualização do App -->
+        <button onclick="forceReloadApp()" id="btn-force-reload" class="btn-pressable px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-emerald-400 hover:text-emerald-300 flex items-center gap-1.5 transition text-xs font-semibold shadow-sm" title="Recarregar versão mais recente da nuvem">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <span>Atualizar</span>
+        </button>
 
         <button onclick="switchTab('ajustes')" class="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white transition" title="Configurações">
           <i data-lucide="settings" class="w-4 h-4"></i>
@@ -824,7 +833,7 @@
     </div>
   </div>
 
-  <!-- SCRIPT PRINCIPAL -->
-  <script src="app.js"></script>
+  <!-- SCRIPT PRINCIPAL COM CACHE BUSTING -->
+  <script src="app.js?v=2.2"></script>
 </body>
 </html>
