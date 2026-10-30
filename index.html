@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>TAF Protocolo Soviético - Sistema Inteligente</title>
+  <title>TAF Soviético - Protocolo de Treinamento</title>
   
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#090d16">
+  <meta name="theme-color" content="#090b10">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -21,14 +21,16 @@
       theme: {
         extend: {
           colors: {
-            brand: {
+            athletic: {
+              black: '#090b10',
+              card: '#10141e',
+              subtle: '#151a26',
+              border: '#1e2638',
+              hover: '#263147',
               red: '#e11d48',
               emerald: '#10b981',
               amber: '#f59e0b',
-              sky: '#0284c7',
-              dark: '#090d16',
-              card: '#111827',
-              border: '#1f2937'
+              sky: '#0284c7'
             }
           }
         }
@@ -39,192 +41,195 @@
   <!-- Ícones Lucide -->
   <script src="https://unpkg.com/lucide@latest"></script>
   
-  <!-- Chart.js para Gráficos Visuais -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- Estilos Customizados -->
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=3.0">
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-rose-500 selection:text-white pb-24 md:pb-12">
+<body class="bg-[#090b10] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-rose-500 selection:text-white pb-20 md:pb-10">
 
-  <!-- TOPO / CABEÇALHO -->
-  <header class="border-b border-slate-800/80 bg-slate-950/90 backdrop-blur sticky top-0 z-40">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+  <!-- HEADER COMPACTO E PROFISSIONAL -->
+  <header class="border-b border-[#1e2638] bg-[#090b10]/95 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-5xl mx-auto px-4 py-2.5 flex items-center justify-between">
       
-      <!-- Logo e Título -->
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-600 to-rose-700 flex items-center justify-center shadow-lg shadow-rose-950/60 border border-rose-500/30">
-          <i data-lucide="shield-check" class="w-5 h-5 text-amber-300"></i>
+      <!-- Logo Minimalista -->
+      <div class="flex items-center space-x-2.5">
+        <div class="w-8 h-8 rounded-lg bg-rose-600/10 border border-rose-500/30 flex items-center justify-center text-rose-500">
+          <i data-lucide="shield" class="w-4 h-4"></i>
         </div>
         <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-sm md:text-base font-black tracking-wider uppercase text-white">
-              Protocolo Soviético
-            </h1>
-            <span class="text-[10px] px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 font-bold">TAF</span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-sm font-bold tracking-tight text-white uppercase">Protocolo Soviético</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono font-bold">TAF</span>
           </div>
-          <p class="text-xs text-slate-400">Método Gabriel Halabi • Densidade Submáxima</p>
+          <span class="text-[10px] text-slate-400 block -mt-0.5">Densidade Submáxima • Gabriel Halabi</span>
         </div>
       </div>
 
-      <!-- Indicadores Rápidos e Botão Atualizar -->
+      <!-- Status e Controles -->
       <div class="flex items-center space-x-2 text-xs">
-        <div id="header-status-badge" class="hidden sm:flex bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-          <span id="header-level-desc" class="text-slate-300 text-[11px] font-semibold">Calibrando nível...</span>
+        <div id="header-status-badge" class="hidden sm:flex bg-[#10141e] px-2.5 py-1 rounded-md border border-[#1e2638] items-center gap-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-status-dot"></span>
+          <span id="header-level-desc" class="text-slate-300 text-[11px] font-medium font-mono">Calibrando...</span>
         </div>
 
-        <!-- Botão Forçar Atualização do App -->
-        <button onclick="forceReloadApp()" id="btn-force-reload" class="btn-pressable px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-emerald-400 hover:text-emerald-300 flex items-center gap-1.5 transition text-xs font-semibold shadow-sm" title="Recarregar versão mais recente da nuvem">
-          <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-emerald-400"></i>
-          <span>Atualizar</span>
+        <button onclick="forceReloadApp()" id="btn-force-reload" class="btn-athletic px-2.5 py-1.5 rounded-md bg-[#10141e] hover:bg-[#151a26] border border-[#1e2638] text-slate-300 hover:text-white flex items-center gap-1.5 text-xs transition font-medium" title="Atualizar dados da nuvem">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-slate-400"></i>
+          <span class="hidden sm:inline">Atualizar</span>
         </button>
 
-        <button onclick="switchTab('ajustes')" class="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white transition" title="Configurações">
+        <button onclick="switchTab('ajustes')" class="p-1.5 rounded-md bg-[#10141e] hover:bg-[#151a26] border border-[#1e2638] text-slate-400 hover:text-white transition" title="Configurações">
           <i data-lucide="settings" class="w-4 h-4"></i>
         </button>
       </div>
 
     </div>
 
-    <!-- Navegação de Abas -->
-    <nav class="max-w-6xl mx-auto px-3 flex overflow-x-auto no-scrollbar space-x-1 border-t border-slate-900">
-      <button onclick="switchTab('treino')" id="tab-btn-treino" class="nav-tab active flex items-center gap-2 px-3 py-2.5 text-xs md:text-sm font-semibold border-b-2 border-rose-500 text-rose-400 whitespace-nowrap">
-        <i data-lucide="dumbbell" class="w-4 h-4"></i> Treino do Dia
+    <!-- Navegação Estilo Segmented Control -->
+    <nav class="max-w-5xl mx-auto px-2 flex overflow-x-auto no-scrollbar space-x-1 border-t border-[#1e2638]/60 text-xs">
+      <button onclick="switchTab('treino')" id="tab-btn-treino" class="nav-tab-clean active flex items-center gap-1.5 px-3 py-2 font-medium border-b-2 border-rose-500 text-rose-400 whitespace-nowrap">
+        <i data-lucide="dumbbell" class="w-3.5 h-3.5"></i> Treino do Dia
       </button>
-      <button onclick="switchTab('timer')" id="tab-btn-timer" class="nav-tab flex items-center gap-2 px-3 py-2.5 text-xs md:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
-        <i data-lucide="timer" class="w-4 h-4"></i> EMOM Timer
+      <button onclick="switchTab('timer')" id="tab-btn-timer" class="nav-tab-clean flex items-center gap-1.5 px-3 py-2 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
+        <i data-lucide="timer" class="w-3.5 h-3.5"></i> Timer EMOM
       </button>
-      <button onclick="switchTab('nivel')" id="tab-btn-nivel" class="nav-tab flex items-center gap-2 px-3 py-2.5 text-xs md:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
-        <i data-lucide="gauge" class="w-4 h-4"></i> Meu Nível & Simulado
+      <button onclick="switchTab('nivel')" id="tab-btn-nivel" class="nav-tab-clean flex items-center gap-1.5 px-3 py-2 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
+        <i data-lucide="sliders" class="w-3.5 h-3.5"></i> Calibração
       </button>
-      <button onclick="switchTab('edital')" id="tab-btn-edital" class="nav-tab flex items-center gap-2 px-3 py-2.5 text-xs md:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
-        <i data-lucide="award" class="w-4 h-4"></i> Pontuação do Edital
+      <button onclick="switchTab('edital')" id="tab-btn-edital" class="nav-tab-clean flex items-center gap-1.5 px-3 py-2 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
+        <i data-lucide="check-square" class="w-3.5 h-3.5"></i> Edital & Pontos
       </button>
-      <button onclick="switchTab('garmin')" id="tab-btn-garmin" class="nav-tab flex items-center gap-2 px-3 py-2.5 text-xs md:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
-        <i data-lucide="watch" class="w-4 h-4"></i> Garmin & Assessoria
+      <button onclick="switchTab('garmin')" id="tab-btn-garmin" class="nav-tab-clean flex items-center gap-1.5 px-3 py-2 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
+        <i data-lucide="watch" class="w-3.5 h-3.5"></i> Garmin & Corrida
       </button>
-      <button onclick="switchTab('historico')" id="tab-btn-historico" class="nav-tab flex items-center gap-2 px-3 py-2.5 text-xs md:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
-        <i data-lucide="line-chart" class="w-4 h-4"></i> Gráficos & Diário
+      <button onclick="switchTab('historico')" id="tab-btn-historico" class="nav-tab-clean flex items-center gap-1.5 px-3 py-2 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
+        <i data-lucide="line-chart" class="w-3.5 h-3.5"></i> Histórico
       </button>
-      <button onclick="switchTab('ajustes')" id="tab-btn-ajustes" class="nav-tab flex items-center gap-2 px-3 py-2.5 text-xs md:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
-        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Sincronização
+      <button onclick="switchTab('ajustes')" id="tab-btn-ajustes" class="nav-tab-clean flex items-center gap-1.5 px-3 py-2 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap">
+        <i data-lucide="share-2" class="w-3.5 h-3.5"></i> Sync & Backup
       </button>
     </nav>
   </header>
 
 
-  <!-- ÁREA DE CONTEÚDO PRINCIPAL -->
-  <main class="max-w-6xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="max-w-5xl mx-auto px-3.5 py-5 flex-1 w-full space-y-5">
 
-    <!-- BANNER PEDAGÓGICO DE BOAS-VINDAS / ONBOARDING (QUANDO NÃO TEM TESTE) -->
-    <div id="onboarding-banner" class="hidden glass-panel rounded-2xl p-6 border-2 border-amber-500/40 bg-gradient-to-br from-amber-950/30 via-slate-900 to-slate-900">
-      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div class="space-y-1.5">
+    <!-- AVISO DE CALIBRAÇÃO (QUANDO NÃO TEM TESTE) -->
+    <div id="onboarding-banner" class="hidden card-clean p-4 border-amber-500/40 bg-amber-950/10">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div class="space-y-1">
           <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 rounded bg-amber-950 text-amber-300 font-bold text-[11px] border border-amber-800">
-              PASSO 1 OBRIGATÓRIO
+            <span class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
+              Etapa Inicial
             </span>
-            <h2 class="text-base md:text-lg font-black text-white">Você ainda não calibrou o seu Protocolo!</h2>
+            <h2 class="text-sm font-bold text-white">Calibração Necessária</h2>
           </div>
-          <p class="text-xs md:text-sm text-slate-300 max-w-2xl leading-relaxed">
-            O Protocolo Soviético **não prescreve números genéricos**. Ele calcula a quantidade exata de repetições por minuto (~20% do seu máximo) para você treinar sem fadiga precoce. Faça o seu teste inicial para o sistema gerar a sua ficha personalizada!
+          <p class="text-xs text-slate-400 leading-relaxed max-w-xl">
+            O Protocolo Soviético prescreve 20% do seu limite real. Insira seu teste de entrada para calcular as repetições exatas da sua sessão.
           </p>
         </div>
-        <button onclick="switchTab('nivel')" class="btn-pressable px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs md:text-sm flex items-center gap-2 shadow-lg shadow-amber-950/50 whitespace-nowrap">
-          <i data-lucide="play-circle" class="w-5 h-5"></i> CALIBRAR MEU NÍVEL AGORA
+        <button onclick="switchTab('nivel')" class="btn-athletic px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 whitespace-nowrap">
+          Calibrar Agora <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
         </button>
       </div>
     </div>
 
 
     <!-- ======================================================== -->
-    <!-- ABA 1: TREINO DO DIA (FICHAS A, B, C, NÃO CORREDORES)   -->
+    <!-- ABA 1: TREINO DO DIA                                     -->
     <!-- ======================================================== -->
-    <section id="tab-treino" class="tab-content active space-y-6">
+    <section id="tab-treino" class="tab-content active space-y-4">
       
-      <!-- Seletor de Fichas -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
-        <button onclick="selectFicha('A')" id="btn-ficha-A" class="ficha-selector p-3.5 rounded-xl border border-rose-500 bg-rose-950/40 text-left transition relative">
-          <span class="text-xs font-bold uppercase tracking-wider text-rose-400 block mb-1">Ficha A</span>
-          <div class="font-bold text-sm text-white">Barra + Abdominal</div>
-          <span class="text-[11px] text-slate-400 mt-0.5 block">40' EMOM + Corrida 20'</span>
+      <!-- Seletor Rápido de Ficha -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <button onclick="selectFicha('A')" id="btn-ficha-A" class="ficha-selector p-3 rounded-xl border border-rose-500 bg-rose-950/20 text-left transition">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-rose-400 font-mono">Ficha A</span>
+            <span class="text-[9px] text-slate-500">40' + 20'</span>
+          </div>
+          <div class="font-bold text-xs text-white">Barra + Abdominal</div>
+          <span class="text-[10px] text-slate-400 block mt-0.5">EMOM alternado + Corrida</span>
         </button>
 
-        <button onclick="selectFicha('B')" id="btn-ficha-B" class="ficha-selector p-3.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:border-slate-700 text-left transition">
-          <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1">Ficha B</span>
-          <div class="font-bold text-sm text-white">Tiros Intervalados</div>
-          <span class="text-[11px] text-slate-400 mt-0.5 block">B1 (Curto) ou B2 (Longo)</span>
+        <button onclick="selectFicha('B')" id="btn-ficha-B" class="ficha-selector p-3 rounded-xl border border-[#1e2638] bg-[#10141e] text-left transition hover:border-slate-700">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">Ficha B</span>
+            <span class="text-[9px] text-slate-500">52 min</span>
+          </div>
+          <div class="font-bold text-xs text-white">Tiros Intervalados</div>
+          <span class="text-[10px] text-slate-400 block mt-0.5">B1 (Curto) ou B2 (Longo)</span>
         </button>
 
-        <button onclick="selectFicha('C')" id="btn-ficha-C" class="ficha-selector p-3.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:border-slate-700 text-left transition">
-          <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1">Ficha C</span>
-          <div class="font-bold text-sm text-white">Flexão de Braços</div>
-          <span class="text-[11px] text-slate-400 mt-0.5 block">20' EMOM + Trote 40' Z2</span>
+        <button onclick="selectFicha('C')" id="btn-ficha-C" class="ficha-selector p-3 rounded-xl border border-[#1e2638] bg-[#10141e] text-left transition hover:border-slate-700">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">Ficha C</span>
+            <span class="text-[9px] text-slate-500">20' + 40'</span>
+          </div>
+          <div class="font-bold text-xs text-white">Flexão de Braço</div>
+          <span class="text-[10px] text-slate-400 block mt-0.5">20' EMOM + Trote Z2</span>
         </button>
 
-        <button onclick="selectFicha('NC')" id="btn-ficha-NC" class="ficha-selector p-3.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:border-slate-700 text-left transition">
-          <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1">Não Corredor</span>
-          <div class="font-bold text-sm text-white">EMOM Corrida</div>
-          <span class="text-[11px] text-slate-400 mt-0.5 block">Trote 15-30" + Caminhada</span>
+        <button onclick="selectFicha('NC')" id="btn-ficha-NC" class="ficha-selector p-3 rounded-xl border border-[#1e2638] bg-[#10141e] text-left transition hover:border-slate-700">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">Transição</span>
+            <span class="text-[9px] text-slate-500">EMOM</span>
+          </div>
+          <div class="font-bold text-xs text-white">Não Corredor</div>
+          <span class="text-[10px] text-slate-400 block mt-0.5">Trote + Caminhada</span>
         </button>
       </div>
 
       <!-- Card do Treino Selecionado -->
-      <div id="ficha-card-container" class="glass-panel rounded-2xl p-5 md:p-6 border border-slate-800 space-y-6">
+      <div id="ficha-card-container" class="card-clean p-4 md:p-5 space-y-4">
         <!-- Renderizado dinamicamente via JS -->
       </div>
 
-      <!-- TERMÔMETRO VISUAL DE DESMAME DA BARRA FIXA -->
-      <div id="desmame-widget" class="glass-panel rounded-2xl p-5 border border-amber-500/30 bg-gradient-to-br from-amber-950/20 via-slate-900 to-slate-900 space-y-3">
-        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm">
-              <i data-lucide="trending-up" class="w-4 h-4"></i>
-            </div>
-            <div>
-              <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                Termômetro de Desmame da Barra (Rumo à Barra Livre)
-              </h3>
-              <p class="text-[11px] text-slate-400">O sistema monitora seu minuto 39 para avisar a hora exata de trocar de elástico.</p>
-            </div>
+      <!-- STEPPER LIMPO DE DESMAME DA BARRA -->
+      <div id="desmame-widget" class="card-clean p-4 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#1e2638] pb-2.5">
+          <div>
+            <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="trending-up" class="w-3.5 h-3.5 text-amber-400"></i>
+              Progressão da Barra Fixa (Rumo à Barra Livre)
+            </h3>
+            <p class="text-[11px] text-slate-400 mt-0.5">Ao atingir 8 repetições no minuto 39, o sistema libera a próxima fase.</p>
           </div>
-          <span id="desmame-status-pill" class="text-[11px] font-bold px-2.5 py-1 rounded bg-amber-950 text-amber-300 border border-amber-800">
+          <span id="desmame-status-pill" class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#151a26] text-amber-300 border border-[#1e2638]">
             Fase Atual: Superband Roxa
           </span>
         </div>
 
-        <!-- Trilha de 4 Etapas do Desmame -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 pt-1 text-center text-xs font-mono">
-          <div id="step-verde" class="p-2.5 rounded-xl border border-slate-800 bg-slate-950/60">
-            <span class="text-[10px] text-slate-500 block uppercase font-sans">Etapa 1</span>
-            <span class="font-bold text-emerald-400 block mt-0.5">Superband Verde</span>
-            <span class="text-[10px] text-slate-400">Meta: 8+ reps na falha</span>
+        <!-- 4 Fases de Desmame -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+          <div id="step-verde" class="p-2.5 rounded-lg border border-[#1e2638] bg-[#151a26]/50">
+            <span class="text-[10px] text-slate-500 block uppercase font-mono">Fase 1</span>
+            <span class="font-bold text-slate-300 block text-[11px]">Superband Verde</span>
+            <span class="text-[10px] text-slate-500">Meta: 8+ reps</span>
           </div>
 
-          <div id="step-roxa" class="p-2.5 rounded-xl border border-amber-500/50 bg-amber-950/30 ring-1 ring-amber-500/40">
-            <span class="text-[10px] text-amber-400 block uppercase font-sans font-bold">Etapa 2 (Você Aqui)</span>
-            <span class="font-bold text-amber-300 block mt-0.5">Superband Roxa</span>
-            <span class="text-[10px] text-amber-200">Meta: 8+ reps na falha</span>
+          <div id="step-roxa" class="p-2.5 rounded-lg border border-amber-500/50 bg-amber-950/20">
+            <span class="text-[10px] text-amber-400 block uppercase font-mono font-bold">Fase 2 (Atual)</span>
+            <span class="font-bold text-amber-300 block text-[11px]">Superband Roxa</span>
+            <span class="text-[10px] text-amber-200/70">Meta: 8+ reps</span>
           </div>
 
-          <div id="step-vermelha" class="p-2.5 rounded-xl border border-slate-800 bg-slate-950/60">
-            <span class="text-[10px] text-slate-500 block uppercase font-sans">Etapa 3</span>
-            <span class="font-bold text-rose-400 block mt-0.5">Superband Vermelha</span>
-            <span class="text-[10px] text-slate-400">Meta: 8+ reps na falha</span>
+          <div id="step-vermelha" class="p-2.5 rounded-lg border border-[#1e2638] bg-[#151a26]/50">
+            <span class="text-[10px] text-slate-500 block uppercase font-mono">Fase 3</span>
+            <span class="font-bold text-slate-300 block text-[11px]">Superband Vermelha</span>
+            <span class="text-[10px] text-slate-500">Meta: 8+ reps</span>
           </div>
 
-          <div id="step-livre" class="p-2.5 rounded-xl border border-slate-800 bg-slate-950/60">
-            <span class="text-[10px] text-slate-500 block uppercase font-sans">Etapa Final 🏆</span>
-            <span class="font-bold text-sky-400 block mt-0.5">Barra Livre (TAF)</span>
-            <span class="text-[10px] text-slate-400">Objetivo Conquistado!</span>
+          <div id="step-livre" class="p-2.5 rounded-lg border border-[#1e2638] bg-[#151a26]/50">
+            <span class="text-[10px] text-slate-500 block uppercase font-mono">Fase 4</span>
+            <span class="font-bold text-slate-300 block text-[11px]">Barra Livre (TAF)</span>
+            <span class="text-[10px] text-slate-500">Meta Oficial</span>
           </div>
         </div>
 
-        <div id="desmame-callout" class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-300 flex items-center justify-between">
-          <span id="desmame-hint-text">
-            💡 <strong>Regra do Sistema:</strong> Quando você fizer o Minute 39 (até a falha) e bater <strong>8 repetições ou mais</strong> com o elástico atual, o sistema emitirá um alerta recomendando passar para a próxima etapa!
-          </span>
+        <div id="desmame-hint-text" class="text-[11px] text-slate-400 bg-[#151a26] p-2.5 rounded-lg border border-[#1e2638]">
+          No seu último treino você realizou o minuto 39. Quando atingir 8 repetições válidas nessa última série, o sistema recomendará avançar para o próximo nível.
         </div>
       </div>
 
@@ -232,98 +237,94 @@
 
 
     <!-- ======================================================== -->
-    <!-- ABA 2: EMOM LIVE TIMER (COM WAKE LOCK & CONTROLE TOTAL) -->
+    <!-- ABA 2: EMOM TIMER (ALTA VISIBILIDADE / SEM POLUIÇÃO)     -->
     <!-- ======================================================== -->
-    <section id="tab-timer" class="tab-content space-y-6">
+    <section id="tab-timer" class="tab-content space-y-4">
       
-      <div class="glass-panel rounded-2xl p-6 md:p-8 border border-slate-800 text-center relative overflow-hidden">
+      <div class="card-clean p-5 md:p-8 text-center space-y-6">
         
-        <!-- Indicador Wake Lock (Tela sempre acesa) -->
-        <div class="flex flex-wrap items-center justify-between border-b border-slate-800 pb-4 mb-6 gap-2">
-          <div class="text-left">
+        <!-- Topo do Timer -->
+        <div class="flex items-center justify-between border-b border-[#1e2638] pb-3 text-left">
+          <div>
             <div class="flex items-center gap-2">
-              <span id="timer-workout-tag" class="text-xs font-bold tracking-widest uppercase px-2.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800">
-                FICHA A - EMOM 40 MIN
+              <span id="timer-workout-tag" class="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-[#151a26] text-slate-300 border border-[#1e2638]">
+                FICHA A • 40 MIN
               </span>
-              <span id="wake-lock-pill" class="text-[10px] font-semibold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/60 flex items-center gap-1">
-                <i data-lucide="sun" class="w-3 h-3 text-emerald-400"></i> Tela Sempre Acesa
+              <span id="wake-lock-pill" class="text-[10px] font-medium text-emerald-400 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Tela Ativa
               </span>
             </div>
-            <h2 id="timer-current-exercise" class="text-xl md:text-2xl font-black text-white mt-1.5">
+            <h2 id="timer-current-exercise" class="text-lg md:text-xl font-bold text-white mt-1">
               Minuto 1: Barra Fixa
             </h2>
-            <p id="timer-next-preview" class="text-xs text-slate-400 mt-0.5">
-              A seguir: Minuto 2 • Abdominal (10 reps)
+            <p id="timer-next-preview" class="text-xs text-slate-400">
+              A seguir: Minuto 2 • Abdominal (8 reps)
             </p>
           </div>
 
-          <!-- Som e Voz -->
-          <div class="flex items-center space-x-2">
-            <button onclick="toggleSound()" id="btn-sound" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs text-slate-300 flex items-center gap-1.5 border border-slate-800 transition">
-              <i data-lucide="volume-2" class="w-4 h-4 text-rose-400"></i> Som: Ligado
+          <!-- Áudio -->
+          <div class="flex items-center space-x-1.5">
+            <button onclick="toggleSound()" id="btn-sound" class="p-2 rounded-md bg-[#151a26] hover:bg-[#1e2638] text-slate-300 text-xs border border-[#1e2638] transition" title="Som de Bips">
+              <i data-lucide="volume-2" class="w-4 h-4 text-rose-400"></i>
             </button>
-            <button onclick="toggleVoice()" id="btn-voice" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs text-slate-300 flex items-center gap-1.5 border border-slate-800 transition">
-              <i data-lucide="mic" class="w-4 h-4 text-emerald-400"></i> Voz: Ligada
+            <button onclick="toggleVoice()" id="btn-voice" class="p-2 rounded-md bg-[#151a26] hover:bg-[#1e2638] text-slate-300 text-xs border border-[#1e2638] transition" title="Comando de Voz">
+              <i data-lucide="mic" class="w-4 h-4 text-emerald-400"></i>
             </button>
           </div>
         </div>
 
-        <!-- RELÓGIO GIGANTE -->
-        <div class="my-6">
-          <div class="relative inline-flex items-center justify-center">
-            <div id="timer-display-box" class="px-8 md:px-12 py-5 rounded-3xl bg-slate-900/90 border-2 border-slate-700 shadow-2xl">
-              <span id="timer-clock" class="text-6xl md:text-8xl font-black font-mono-digits tracking-tight text-white drop-shadow">
-                01:00
-              </span>
-            </div>
-          </div>
-          
-          <div class="mt-4 flex items-center justify-center gap-2">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Progresso:</span>
-            <span id="timer-round-info" class="text-xs font-mono font-bold text-amber-400 bg-amber-950/60 px-2.5 py-1 rounded border border-amber-800/60">
-              Minuto 1 de 40
+        <!-- RELÓGIO MONUMENTAL -->
+        <div class="py-2">
+          <div class="inline-block bg-[#090b10] px-8 md:px-14 py-4 rounded-2xl border border-[#1e2638]">
+            <span id="timer-clock" class="text-6xl md:text-8xl font-black font-mono-numbers tracking-tight text-white">
+              01:00
             </span>
           </div>
 
-          <div class="w-full max-w-md mx-auto bg-slate-800 h-2.5 rounded-full overflow-hidden mt-4">
-            <div id="timer-progress-bar" class="bg-gradient-to-r from-rose-600 to-amber-500 h-full w-full transition-all duration-300"></div>
+          <div class="mt-3 flex items-center justify-center gap-2 text-xs">
+            <span class="text-slate-400 font-medium">Série:</span>
+            <span id="timer-round-info" class="font-mono font-bold text-slate-200 bg-[#151a26] px-2 py-0.5 rounded border border-[#1e2638]">
+              1 de 40
+            </span>
+          </div>
+
+          <div class="w-full max-w-sm mx-auto bg-[#151a26] h-1.5 rounded-full overflow-hidden mt-3">
+            <div id="timer-progress-bar" class="bg-rose-500 h-full w-full transition-all duration-300"></div>
           </div>
         </div>
 
-        <!-- META ATUAL E AJUSTE RÁPIDO -->
-        <div class="bg-slate-900/90 rounded-xl p-4 max-w-sm mx-auto border border-slate-800 mb-6">
-          <div class="text-xs text-slate-400 mb-1">Meta desta série:</div>
+        <!-- META ATUAL & AJUSTE RÁPIDO -->
+        <div class="card-subtle p-3.5 max-w-xs mx-auto border border-[#1e2638]">
+          <div class="text-[11px] text-slate-400 mb-0.5">Meta para este minuto:</div>
           <div class="flex items-center justify-center gap-4">
-            <button onclick="adjustCurrentRep(-1)" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 text-lg font-bold flex items-center justify-center text-slate-300 transition">-</button>
-            <div class="text-2xl font-black text-rose-400 font-mono" id="current-rep-target">1 rep</div>
-            <button onclick="adjustCurrentRep(1)" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 text-lg font-bold flex items-center justify-center text-slate-300 transition">+</button>
+            <button onclick="adjustCurrentRep(-1)" class="w-8 h-8 rounded-md bg-[#1e2638] hover:bg-[#263147] text-base font-bold flex items-center justify-center text-slate-200 transition">-</button>
+            <div class="text-xl font-bold text-white font-mono" id="current-rep-target">1 rep</div>
+            <button onclick="adjustCurrentRep(1)" class="w-8 h-8 rounded-md bg-[#1e2638] hover:bg-[#263147] text-base font-bold flex items-center justify-center text-slate-200 transition">+</button>
           </div>
-          <div id="current-assistance-tag" class="text-[11px] text-amber-300 font-medium mt-1">
-            (Assistência: Superband Roxa)
+          <div id="current-assistance-tag" class="text-[10px] text-slate-400 font-mono mt-0.5">
+            (Superband Roxa)
           </div>
         </div>
 
-        <!-- BOTÕES DE CONTROLE -->
-        <div class="flex flex-wrap items-center justify-center gap-3">
-          <button onclick="startOrPauseTimer()" id="btn-timer-play" class="btn-pressable px-8 py-4 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-black text-base md:text-lg flex items-center gap-3 shadow-xl shadow-rose-950/60 transition">
-            <i data-lucide="play" class="w-6 h-6"></i> INICIAR TREINO
+        <!-- CONTROLES PRINCIPAIS -->
+        <div class="flex flex-wrap items-center justify-center gap-2.5 pt-2">
+          <button onclick="startOrPauseTimer()" id="btn-timer-play" class="btn-athletic px-6 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm flex items-center gap-2 transition">
+            <i data-lucide="play" class="w-4 h-4"></i> Iniciar Treino
           </button>
 
-          <button onclick="markSeriesCompleted()" id="btn-timer-done" disabled class="btn-pressable px-6 py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-30 disabled:cursor-not-allowed text-white font-bold text-base flex items-center gap-2 shadow-lg shadow-emerald-950/50 transition">
-            <i data-lucide="check-circle" class="w-5 h-5"></i> SÉRIE CONCLUÍDA <span class="hidden sm:inline text-xs text-emerald-200">(Espaço)</span>
+          <button onclick="markSeriesCompleted()" id="btn-timer-done" disabled class="btn-athletic px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold text-sm flex items-center gap-2 transition">
+            <i data-lucide="check" class="w-4 h-4"></i> Série Feita <span class="hidden sm:inline text-xs text-emerald-200">(Espaço)</span>
           </button>
 
-          <button onclick="resetTimer()" id="btn-timer-reset" class="btn-pressable px-4 py-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-sm font-semibold border border-slate-800 transition">
-            <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+          <button onclick="resetTimer()" id="btn-timer-reset" class="btn-athletic p-3 rounded-xl bg-[#151a26] hover:bg-[#1e2638] text-slate-300 border border-[#1e2638] transition" title="Reiniciar">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
           </button>
         </div>
 
-        <!-- MENSAGEM DO ÚLTIMO MINUTO (AMRAP) -->
-        <div id="amrap-banner" class="hidden mt-6 p-4 rounded-xl bg-rose-950/80 border-2 border-rose-500 text-rose-200 animate-pulse-subtle">
-          <div class="flex items-center justify-center gap-2 font-black text-base uppercase">
-            <i data-lucide="flame" class="w-5 h-5 text-amber-400"></i> ÚLTIMO MINUTO: SÉRIE ATÉ A FALHA!
-          </div>
-          <p class="text-xs text-rose-300 mt-1">Dê o seu máximo técnico! O sistema recalculará a meta do próximo treino baseado nisso.</p>
+        <!-- ALERTA SÉRIE ATÉ A FALHA -->
+        <div id="amrap-banner" class="hidden p-3 rounded-lg bg-rose-950/40 border border-rose-500/60 text-rose-300 text-xs">
+          <span class="font-bold block uppercase font-mono">Última Série: Até a Falha</span>
+          Execute o máximo de repetições com boa técnica. O resultado atualizará seu próximo treino.
         </div>
 
       </div>
@@ -332,130 +333,87 @@
 
 
     <!-- ======================================================== -->
-    <!-- ABA 3: MEU NÍVEL & CALIBRAÇÃO DE SIMULADOS              -->
+    <!-- ABA 3: CALIBRAÇÃO (TESTE MÁXIMO INICIAL)                 -->
     <!-- ======================================================== -->
-    <section id="tab-nivel" class="tab-content space-y-6">
+    <section id="tab-nivel" class="tab-content space-y-4">
+      
+      <div class="card-clean p-4 md:p-5 space-y-4">
+        <div class="border-b border-[#1e2638] pb-2.5">
+          <h2 class="text-sm font-bold text-white uppercase tracking-wider">
+            Calibração de Cargas e Repetições
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Insira o desempenho obtido no seu teste máximo para calcular as repetições submáximas do protocolo.
+          </p>
+        </div>
 
-      <!-- GUIA DIDÁTICO: A MATEMÁTICA DO PROTOCOLO SOVIÉTICO -->
-      <div class="glass-panel rounded-2xl p-5 md:p-6 border border-slate-800 space-y-4">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-rose-950 text-rose-400 flex items-center justify-center border border-rose-800/60">
-            <i data-lucide="book-open" class="w-5 h-5"></i>
-          </div>
+        <form id="simulado-form" onsubmit="saveSimulado(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
           <div>
-            <h2 class="text-base font-bold text-white">Como Funciona a Calibração do Protocolo</h2>
-            <p class="text-xs text-slate-400">Entenda a regra exata aplicada sobre o seu teste de entrada.</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1 text-xs">
-          <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 space-y-1">
-            <span class="font-bold text-rose-400 block">1. A Regra dos ~20% (Submáximo)</span>
-            <p class="text-slate-400 text-[11px] leading-relaxed">
-              Sua meta por minuto no EMOM será de aproximadamente <strong>20% do seu teste máximo</strong>. Exemplo: 17 flexões no teste &rarr; 3 flexões por minuto por 20 minutos = 60 flexões no treino!
-            </p>
+            <label class="text-slate-300 font-medium block mb-1">Data do Teste</label>
+            <input type="date" id="sim-date" required class="w-full bg-[#151a26] border border-[#1e2638] rounded-md px-2.5 py-1.5 text-white focus:outline-none focus:border-rose-500">
           </div>
 
-          <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 space-y-1">
-            <span class="font-bold text-amber-400 block">2. Barra Fixa & Superband</span>
-            <p class="text-slate-400 text-[11px] leading-relaxed">
-              Se você só faz <strong>1 repetição livre</strong>, você NÃO aguenta 20 séries livres. O teste deve ser feito com um elástico médio (Roxo) ou forte (Verde). O EMOM é feito com o elástico até você desmamar.
-            </p>
-          </div>
-
-          <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 space-y-1">
-            <span class="font-bold text-emerald-400 block">3. O Desmame Automático</span>
-            <p class="text-slate-400 text-[11px] leading-relaxed">
-              No último minuto (min 39), você faz o máximo com o elástico. Quando bater <strong>8 a 10 reps</strong>, o sistema sugere trocar para um elástico mais fino até chegar na barra livre!
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- FORMULÁRIO DE CALIBRAÇÃO -->
-      <div class="glass-panel rounded-2xl p-5 md:p-6 border border-slate-800 space-y-4">
-        <div class="border-b border-slate-800 pb-3">
-          <h3 class="text-base font-bold text-white flex items-center gap-2">
-            <i data-lucide="sliders" class="w-4 h-4 text-rose-500"></i> Calibrar Meu Nível Atual (Teste Inicial ou Simulado)
-          </h3>
-          <p class="text-xs text-slate-400">Preencha seus índices atuais para que as Fichas A, B e C sejam calculadas para você.</p>
-        </div>
-
-        <form id="simulado-form" onsubmit="saveSimulado(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <!-- Data -->
-          <div class="space-y-1">
-            <label class="text-xs font-semibold text-slate-300">Data do Teste</label>
-            <input type="date" id="sim-date" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-rose-500">
-          </div>
-
-          <!-- Barra Fixa -->
-          <div class="space-y-1">
-            <label class="text-xs font-semibold text-slate-300">Barra Fixa (Máximo no Teste)</label>
-            <div class="flex gap-2">
-              <input type="number" id="sim-barra" min="0" placeholder="Reps" required class="w-1/2 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-rose-500">
-              <select id="sim-barra-mod" class="w-1/2 bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-[11px] text-amber-300 font-bold focus:outline-none">
-                <option value="roxa" selected>Superband Roxa (Média)</option>
-                <option value="verde">Superband Verde (Forte)</option>
-                <option value="vermelha">Superband Vermelha (Leve)</option>
+          <div>
+            <label class="text-slate-300 font-medium block mb-1">Barra Fixa (Máximo no Teste)</label>
+            <div class="flex gap-1.5">
+              <input type="number" id="sim-barra" min="0" placeholder="Reps" required class="w-1/2 bg-[#151a26] border border-[#1e2638] rounded-md px-2.5 py-1.5 text-white font-mono focus:outline-none">
+              <select id="sim-barra-mod" class="w-1/2 bg-[#151a26] border border-[#1e2638] rounded-md px-1.5 py-1.5 text-slate-300 text-[11px] focus:outline-none">
+                <option value="roxa" selected>Superband Roxa</option>
+                <option value="verde">Superband Verde</option>
+                <option value="vermelha">Superband Vermelha</option>
                 <option value="livre">Sem elástico (Livre)</option>
-                <option value="excentrica">Excêntrica Lenta (4s)</option>
+                <option value="excentrica">Excêntrica Lenta</option>
+                <option value="colete">Carga Extra (Colete)</option>
               </select>
             </div>
-            <span class="text-[10px] text-slate-500">Se fizer 1 livre, teste quantas faz com a Superband</span>
           </div>
 
-          <!-- Flexão de Braço -->
-          <div class="space-y-1">
-            <label class="text-xs font-semibold text-slate-300">Flexão de Braço (Máximo)</label>
-            <input type="number" id="sim-flexao" min="0" placeholder="ex: 17" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-rose-500">
-            <span class="text-[10px] text-slate-500">Reps contínuas até a falha técnica</span>
+          <div>
+            <label class="text-slate-300 font-medium block mb-1">Flexão de Braço (Máximo)</label>
+            <input type="number" id="sim-flexao" min="0" placeholder="ex: 17" required class="w-full bg-[#151a26] border border-[#1e2638] rounded-md px-2.5 py-1.5 text-white font-mono focus:outline-none">
           </div>
 
-          <!-- Abdominal -->
-          <div class="space-y-1">
-            <label class="text-xs font-semibold text-slate-300">Abdominal Remador (1 minuto)</label>
-            <input type="number" id="sim-abd" min="0" placeholder="ex: 32" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-rose-500">
-            <span class="text-[10px] text-slate-500">Reps válidas em 60 segundos</span>
+          <div>
+            <label class="text-slate-300 font-medium block mb-1">Abdominal Remador (1 min)</label>
+            <input type="number" id="sim-abd" min="0" placeholder="ex: 32" required class="w-full bg-[#151a26] border border-[#1e2638] rounded-md px-2.5 py-1.5 text-white font-mono focus:outline-none">
           </div>
 
-          <!-- Corrida 2400m -->
-          <div class="space-y-1 sm:col-span-2">
-            <label class="text-xs font-semibold text-slate-300">Corrida 2.400m (Tempo e Distância)</label>
+          <div class="sm:col-span-2">
+            <label class="text-slate-300 font-medium block mb-1">Corrida de 12 Minutos (Distância & Tempo)</label>
             <div class="flex gap-2">
-              <input type="number" id="sim-dist" placeholder="Distância (m)" value="2400" class="w-1/2 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none">
-              <input type="text" id="sim-tempo" placeholder="Tempo (ex: 11:30)" class="w-1/2 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none">
+              <input type="number" id="sim-dist" placeholder="Distância em metros (ex: 2400)" value="2400" class="w-1/2 bg-[#151a26] border border-[#1e2638] rounded-md px-2.5 py-1.5 text-white font-mono focus:outline-none">
+              <input type="text" id="sim-tempo" placeholder="Tempo (ex: 11:30)" class="w-1/2 bg-[#151a26] border border-[#1e2638] rounded-md px-2.5 py-1.5 text-white font-mono focus:outline-none">
             </div>
           </div>
 
-          <!-- Botão Submeter -->
           <div class="sm:col-span-2 flex items-end">
-            <button type="submit" class="w-full btn-pressable bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 px-4 rounded-lg text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-rose-950/60">
-              <i data-lucide="calculator" class="w-4 h-4"></i> Calibrar e Atualizar Meu Protocolo
+            <button type="submit" class="w-full btn-athletic bg-rose-600 hover:bg-rose-500 text-white font-bold py-2 px-4 rounded-md text-xs flex items-center justify-center gap-1.5 transition">
+              Calibrar Parâmetros do Protocolo
             </button>
           </div>
         </form>
       </div>
 
-      <!-- HISTÓRICO DE SIMULADOS -->
-      <div class="glass-panel rounded-2xl p-5 md:p-6 border border-slate-800">
-        <h4 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
-          <i data-lucide="history" class="w-4 h-4 text-emerald-400"></i> Seus Testes Anteriores
-        </h4>
+      <!-- Histórico de Testes -->
+      <div class="card-clean p-4">
+        <h3 class="text-xs font-bold text-white uppercase tracking-wider mb-2.5">
+          Registros Anteriores
+        </h3>
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-slate-900 text-slate-400 uppercase text-[10px] font-bold border-b border-slate-800">
+          <table class="w-full text-left text-xs text-slate-300 font-mono">
+            <thead class="bg-[#151a26] text-slate-400 uppercase text-[10px] border-b border-[#1e2638]">
               <tr>
-                <th class="py-2.5 px-3">Data</th>
-                <th class="py-2.5 px-3">Barra (Teste)</th>
-                <th class="py-2.5 px-3">Meta EMOM</th>
-                <th class="py-2.5 px-3">Flexão (Teste)</th>
-                <th class="py-2.5 px-3">Meta EMOM</th>
-                <th class="py-2.5 px-3">Abdominal</th>
-                <th class="py-2.5 px-3">Corrida</th>
-                <th class="py-2.5 px-3 text-right">Ação</th>
+                <th class="py-2 px-2.5">Data</th>
+                <th class="py-2 px-2.5">Barra Testada</th>
+                <th class="py-2 px-2.5">Meta EMOM</th>
+                <th class="py-2 px-2.5">Flexão</th>
+                <th class="py-2 px-2.5">Meta EMOM</th>
+                <th class="py-2 px-2.5">Abdominal</th>
+                <th class="py-2 px-2.5">Corrida</th>
+                <th class="py-2 px-2.5 text-right">Ação</th>
               </tr>
             </thead>
-            <tbody id="simulados-table-body" class="divide-y divide-slate-800 font-mono">
+            <tbody id="simulados-table-body" class="divide-y divide-[#1e2638]">
               <!-- Renderizado via JS -->
             </tbody>
           </table>
@@ -466,65 +424,61 @@
 
 
     <!-- ======================================================== -->
-    <!-- ABA 4: PONTUAÇÃO DO EDITAL (CALCULADORA DE CONCURSOS)    -->
+    <!-- ABA 4: EDITAL & PONTUAÇÃO                                -->
     <!-- ======================================================== -->
-    <section id="tab-edital" class="tab-content space-y-6">
-
-      <div class="glass-panel rounded-2xl p-5 md:p-6 border border-slate-800 space-y-4">
-        <div class="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
+    <section id="tab-edital" class="tab-content space-y-4">
+      
+      <div class="card-clean p-4 md:p-5 space-y-4">
+        <div class="flex flex-wrap items-center justify-between border-b border-[#1e2638] pb-2.5 gap-2">
           <div>
-            <h2 class="text-base font-bold text-white flex items-center gap-2">
-              <i data-lucide="award" class="w-5 h-5 text-amber-400"></i> Calculadora Oficial de Pontuação do TAF
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider">
+              Simulador de Pontuação por Edital
             </h2>
-            <p class="text-xs text-slate-400">Veja se você seria APROVADO hoje no seu concurso dos sonhos e quanto falta para a pontuação máxima.</p>
+            <p class="text-xs text-slate-400 mt-0.5">Diagnóstico em tempo real baseado no seu teste de barra livre e corrida.</p>
+          </div>
+          
+          <select id="edital-selector" onchange="calculateEditalScore()" class="bg-[#151a26] border border-[#1e2638] text-xs text-white rounded-md px-2.5 py-1 focus:outline-none font-medium">
+            <option value="PF_AGENTE">Polícia Federal (Agente / Escrivão)</option>
+            <option value="PRF">Polícia Rodoviária Federal (PRF)</option>
+            <option value="PC_GERAL">Polícia Civil (Geral)</option>
+            <option value="PM_GERAL">Polícia Militar</option>
+          </select>
+        </div>
+
+        <!-- Quadro de Status -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+          <div id="edital-status-card" class="p-3.5 rounded-lg border border-[#1e2638] bg-[#151a26]">
+            <span class="text-[10px] text-slate-400 uppercase tracking-wider block font-medium">Resultado Geral</span>
+            <div id="edital-status-text" class="text-lg font-bold text-slate-300 font-mono my-0.5">Aguardando Teste</div>
+            <span id="edital-status-desc" class="text-[10px] text-slate-500">Cadastre seu teste para calcular</span>
           </div>
 
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-slate-400">Escolha o Concurso:</span>
-            <select id="edital-selector" onchange="calculateEditalScore()" class="bg-slate-900 border border-slate-700 text-xs text-amber-300 font-bold rounded-lg px-3 py-1.5 focus:outline-none">
-              <option value="PF_AGENTE">Polícia Federal (Agente / Papiloscopista)</option>
-              <option value="PRF">Polícia Rodoviária Federal (PRF)</option>
-              <option value="PC_GERAL">Polícia Civil (Padrão 3 a 15 barras)</option>
-              <option value="PM_GERAL">Polícia Militar (Tabela de Pontos 0-100)</option>
-            </select>
+          <div class="p-3.5 rounded-lg border border-[#1e2638] bg-[#151a26]">
+            <span class="text-[10px] text-slate-400 uppercase tracking-wider block font-medium">Pontuação Total</span>
+            <div id="edital-points-text" class="text-lg font-bold text-white font-mono my-0.5">0.0 pts</div>
+            <span class="text-[10px] text-slate-500">Soma das notas</span>
+          </div>
+
+          <div class="p-3.5 rounded-lg border border-[#1e2638] bg-[#151a26]">
+            <span class="text-[10px] text-slate-400 uppercase tracking-wider block font-medium">Ponto de Atenção</span>
+            <div id="edital-critical-text" class="text-sm font-semibold text-amber-400 font-mono my-1">Barra Fixa</div>
+            <span class="text-[10px] text-slate-500">Exige repetições livres</span>
           </div>
         </div>
 
-        <!-- PLACAR DE STATUS -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-2">
-          <div id="edital-status-card" class="p-4 rounded-xl border border-rose-500/40 bg-rose-950/20 text-center flex flex-col justify-center items-center">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Resultado Geral</span>
-            <div id="edital-status-text" class="text-2xl font-black text-rose-400 my-1">REPROVADO</div>
-            <span id="edital-status-desc" class="text-[11px] text-slate-300">Necessário atingir índice mínimo em todas as etapas</span>
-          </div>
-
-          <div class="p-4 rounded-xl border border-slate-800 bg-slate-900/60 text-center flex flex-col justify-center items-center">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pontuação Total Estimada</span>
-            <div id="edital-points-text" class="text-3xl font-black text-amber-400 font-mono my-1">0.0 pts</div>
-            <span class="text-[10px] text-slate-500">Soma de todas as provas do TAF</span>
-          </div>
-
-          <div class="p-4 rounded-xl border border-slate-800 bg-slate-900/60 text-center flex flex-col justify-center items-center">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Seu Ponto Mais Crítico</span>
-            <div id="edital-critical-text" class="text-base font-bold text-rose-300 my-1">Barra Fixa</div>
-            <span class="text-[10px] text-slate-500">Onde o Protocolo Soviético vai te salvar</span>
-          </div>
-        </div>
-
-        <!-- Tabela Detalhada Prova a Prova -->
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-slate-900 text-slate-400 uppercase text-[10px] font-bold border-b border-slate-800">
+            <thead class="bg-[#151a26] text-slate-400 uppercase text-[10px] font-mono border-b border-[#1e2638]">
               <tr>
-                <th class="py-2.5 px-3">Exercício</th>
-                <th class="py-2.5 px-3">Sua Marca Atual</th>
-                <th class="py-2.5 px-3">Mínimo para Não Zerar</th>
-                <th class="py-2.5 px-3">Nota Estimada</th>
-                <th class="py-2.5 px-3">Para Gabaritar (Nota Máxima)</th>
+                <th class="py-2 px-2.5">Prova</th>
+                <th class="py-2 px-2.5">Sua Marca Atual</th>
+                <th class="py-2 px-2.5">Mínimo para Não Zerar</th>
+                <th class="py-2 px-2.5">Nota Estimada</th>
+                <th class="py-2 px-2.5">Marca Máxima</th>
               </tr>
             </thead>
-            <tbody id="edital-table-body" class="divide-y divide-slate-800 font-mono">
-              <!-- Renderizado via JS -->
+            <tbody id="edital-table-body" class="divide-y divide-[#1e2638] font-mono text-[11px]">
+              <!-- Preenchido via JS -->
             </tbody>
           </table>
         </div>
@@ -534,203 +488,177 @@
 
 
     <!-- ======================================================== -->
-    <!-- ABA 5: GARMIN & ASSESSORIA DE CORRIDA                    -->
+    <!-- ABA 5: GARMIN & CORRIDA                                  -->
     <!-- ======================================================== -->
-    <section id="tab-garmin" class="tab-content space-y-6">
-
-      <!-- Calculadora Tanaka + Karvonen -->
-      <div class="glass-panel rounded-2xl p-5 md:p-6 border border-slate-800 space-y-4">
-        <div class="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
+    <section id="tab-garmin" class="tab-content space-y-4">
+      
+      <!-- Zonas Cardíacas -->
+      <div class="card-clean p-4 space-y-3">
+        <div class="flex flex-wrap items-center justify-between border-b border-[#1e2638] pb-2.5 gap-2">
           <div>
-            <h2 class="text-base font-bold text-white flex items-center gap-2">
-              <i data-lucide="heart-pulse" class="w-5 h-5 text-rose-500"></i> Zonas de Frequência Cardíaca (Tanaka + Karvonen)
+            <h2 class="text-xs font-bold text-white uppercase tracking-wider">
+              Zonas de Frequência Cardíaca (Tanaka + Karvonen)
             </h2>
-            <p class="text-xs text-slate-400">Configure essas faixas de BPM no seu relógio Garmin.</p>
+            <p class="text-[11px] text-slate-400">Parâmetros fisiológicos para o Garmin Connect.</p>
           </div>
-          <button onclick="copyGarminZones()" class="text-xs bg-slate-900 hover:bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1.5 transition">
-            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar para o Garmin
+          <button onclick="copyGarminZones()" class="btn-athletic text-[11px] bg-[#151a26] hover:bg-[#1e2638] text-slate-200 px-2.5 py-1 rounded border border-[#1e2638] transition">
+            Copiar Zonas para o Garmin
           </button>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-            <label class="text-[11px] text-slate-400 block font-semibold mb-1">Idade (anos)</label>
-            <input type="number" id="fc-idade" value="35" onchange="calculateHeartZones()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1 text-sm font-bold text-white focus:outline-none">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+          <div class="card-subtle p-2.5">
+            <span class="text-slate-400 text-[10px] block">Idade</span>
+            <input type="number" id="fc-idade" value="30" onchange="calculateHeartZones()" class="w-full bg-transparent font-bold text-white font-mono focus:outline-none">
           </div>
-          <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-            <label class="text-[11px] text-slate-400 block font-semibold mb-1">FC Repouso (bpm)</label>
-            <input type="number" id="fc-repouso" value="45" onchange="calculateHeartZones()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1 text-sm font-bold text-white focus:outline-none">
+          <div class="card-subtle p-2.5">
+            <span class="text-slate-400 text-[10px] block">FC Repouso (BPM)</span>
+            <input type="number" id="fc-repouso" value="55" onchange="calculateHeartZones()" class="w-full bg-transparent font-bold text-white font-mono focus:outline-none">
           </div>
-          <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-            <label class="text-[11px] text-slate-400 block font-semibold mb-1">FC Máxima (Tanaka)</label>
-            <div id="fc-max-calculated" class="text-sm font-bold text-rose-400 pt-0.5">183.5 bpm</div>
-            <span class="text-[10px] text-slate-500">[208 - (0.7 × Idade)]</span>
+          <div class="card-subtle p-2.5">
+            <span class="text-slate-400 text-[10px] block">FC Máxima (Tanaka)</span>
+            <span id="fc-max-calculated" class="font-bold text-white font-mono block mt-0.5">187 bpm</span>
           </div>
-          <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-            <label class="text-[11px] text-slate-400 block font-semibold mb-1">Zona Chave TAF</label>
-            <div class="text-sm font-bold text-emerald-400 pt-0.5">Zona 2 (Base)</div>
-            <span class="text-[10px] text-slate-500">Volume sem canelite</span>
+          <div class="card-subtle p-2.5">
+            <span class="text-slate-400 text-[10px] block">Zona Chave TAF</span>
+            <span class="font-bold text-emerald-400 font-mono block mt-0.5">Zona 2 (Aeróbica)</span>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 text-center" id="zones-cards-container">
+        <div class="grid grid-cols-1 sm:grid-cols-5 gap-1.5 text-center font-mono" id="zones-cards-container">
           <!-- Renderizado via JS -->
         </div>
       </div>
 
-      <!-- Treinos Garmin & Registro Assessoria -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        <!-- Modelos Prontos para Criar no Garmin Connect -->
-        <div class="glass-panel rounded-2xl p-5 border border-slate-800 space-y-3">
-          <h3 class="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-2">
-            <i data-lucide="watch" class="w-4 h-4 text-sky-400"></i> Treinos Prontos para Cadastrar no Garmin
+      <!-- Estrutura de Treinos e Assessoria -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 text-xs">
+        <div class="card-clean p-4 space-y-2">
+          <h3 class="font-bold text-white uppercase text-[11px] tracking-wider border-b border-[#1e2638] pb-1.5">
+            Estrutura dos Treinos de Corrida
           </h3>
-          <div class="space-y-2 text-xs font-mono">
-            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
-              <span class="font-bold text-rose-400 block mb-1">Ficha A (20 min Corrida):</span>
-              <p class="text-slate-300">5' Z2 &rarr; 10' Z3 (Ritmo Prova) &rarr; 5' Z2</p>
+          <div class="space-y-1.5 font-mono text-[11px] text-slate-300">
+            <div class="p-2 rounded bg-[#151a26]">
+              <span class="text-rose-400 font-bold block">Ficha A (20 min contínua):</span>
+              5 min Z2 &rarr; 10 min Z3 (Ritmo) &rarr; 5 min Z2
             </div>
-            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
-              <span class="font-bold text-amber-400 block mb-1">Ficha B.1 (Tiro Curto 52 min):</span>
-              <p class="text-slate-300">5' Z2 + 2' cam. + 20x [30" Tiro Máx / 90" cam.] + 5' Z2</p>
+            <div class="p-2 rounded bg-[#151a26]">
+              <span class="text-amber-400 font-bold block">Ficha B.1 (Tiros Curtos - 52 min):</span>
+              Aquec. 5' Z2 + 2' cam. + 20x [30" tiro / 90" cam.] + 5' Z2
             </div>
-            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
-              <span class="font-bold text-sky-400 block mb-1">Ficha B.2 (Tiro Longo 52 min):</span>
-              <p class="text-slate-300">5' Z2 + 2' cam. + 8x [2' Tiro Forte / 3' cam.] + 5' Z2</p>
+            <div class="p-2 rounded bg-[#151a26]">
+              <span class="text-sky-400 font-bold block">Ficha B.2 (Tiros Longos - 52 min):</span>
+              Aquec. 5' Z2 + 2' cam. + 8x [2' tiro / 3' cam.] + 5' Z2
             </div>
           </div>
         </div>
 
-        <!-- Formulário da Assessoria -->
-        <div class="glass-panel rounded-2xl p-5 border border-slate-800 space-y-3">
-          <h3 class="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-2">
-            <i data-lucide="file-plus" class="w-4 h-4 text-emerald-400"></i> Lançar Treino da Assessoria de Corrida
+        <div class="card-clean p-4 space-y-2">
+          <h3 class="font-bold text-white uppercase text-[11px] tracking-wider border-b border-[#1e2638] pb-1.5">
+            Registro de Sessão com Assessoria
           </h3>
           <form id="assessoria-form" onsubmit="saveAssessoriaRun(event)" class="grid grid-cols-2 gap-2 text-xs">
             <div>
               <label class="text-[10px] text-slate-400 block">Data</label>
-              <input type="date" id="ass-date" required class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
+              <input type="date" id="ass-date" required class="w-full bg-[#151a26] border border-[#1e2638] rounded p-1 text-white">
             </div>
             <div>
               <label class="text-[10px] text-slate-400 block">Tipo</label>
-              <select id="ass-type" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
+              <select id="ass-type" class="w-full bg-[#151a26] border border-[#1e2638] rounded p-1 text-white">
                 <option value="Longão">Longão / Rodagem</option>
-                <option value="Intervalado">Tiros da Assessoria</option>
-                <option value="Regenerativo">Regenerativo (Z1/Z2)</option>
-                <option value="Tempo Run">Tempo Run / Ritmo</option>
+                <option value="Intervalado">Intervalado</option>
+                <option value="Regenerativo">Regenerativo</option>
+                <option value="Tempo Run">Tempo Run / Prova</option>
               </select>
             </div>
             <div>
               <label class="text-[10px] text-slate-400 block">Distância (km)</label>
-              <input type="number" step="0.01" id="ass-dist" placeholder="ex: 6.0" required oninput="calcPace()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white font-mono">
+              <input type="number" step="0.01" id="ass-dist" placeholder="ex: 5.5" required oninput="calcPace()" class="w-full bg-[#151a26] border border-[#1e2638] rounded p-1 text-white font-mono">
             </div>
             <div>
-              <label class="text-[10px] text-slate-400 block">Tempo Total</label>
-              <input type="text" id="ass-time" placeholder="ex: 32:00" required oninput="calcPace()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white font-mono">
+              <label class="text-[10px] text-slate-400 block">Tempo</label>
+              <input type="text" id="ass-time" placeholder="ex: 28:00" required oninput="calcPace()" class="w-full bg-[#151a26] border border-[#1e2638] rounded p-1 text-white font-mono">
             </div>
             <div class="col-span-2">
-              <label class="text-[10px] text-slate-400 block">Pace Calculado Automaticamente</label>
-              <input type="text" id="ass-pace" readonly placeholder="0:00 min/km" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-emerald-400 font-mono font-bold">
+              <label class="text-[10px] text-slate-400 block">Pace Calculado</label>
+              <input type="text" id="ass-pace" readonly placeholder="0:00 min/km" class="w-full bg-[#090b10] border border-[#1e2638] rounded p-1 text-emerald-400 font-mono font-bold">
             </div>
-            <div class="col-span-2 flex justify-end pt-1">
-              <button type="submit" class="btn-pressable px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5">
-                <i data-lucide="check" class="w-3.5 h-3.5"></i> Salvar Treino
+            <div class="col-span-2 flex justify-end">
+              <button type="submit" class="btn-athletic px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs">
+                Registrar Treino
               </button>
             </div>
           </form>
         </div>
-
       </div>
 
     </section>
 
 
     <!-- ======================================================== -->
-    <!-- ABA 6: GRÁFICOS VISUAIS & DIÁRIO DE TREINOS              -->
+    <!-- ABA 6: HISTÓRICO & GRÁFICOS                              -->
     <!-- ======================================================== -->
-    <section id="tab-historico" class="tab-content space-y-6">
-
-      <!-- Contadores Totais -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
-          <span class="text-xs font-bold text-slate-400 block mb-1">Barras Acumuladas</span>
-          <div class="text-2xl font-black text-rose-500 font-mono" id="stat-total-barras">0</div>
-          <span class="text-[10px] text-slate-500">Volume seguro sem lesão</span>
+    <section id="tab-historico" class="tab-content space-y-4">
+      
+      <!-- Contadores -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 font-mono">
+        <div class="card-clean p-3">
+          <span class="text-[10px] text-slate-400 uppercase block font-sans">Total Barras</span>
+          <div class="text-xl font-bold text-white mt-0.5" id="stat-total-barras">0</div>
         </div>
-        <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
-          <span class="text-xs font-bold text-slate-400 block mb-1">Flexões Acumuladas</span>
-          <div class="text-2xl font-black text-amber-400 font-mono" id="stat-total-flexoes">0</div>
-          <span class="text-[10px] text-slate-500">Volume Ficha C</span>
+        <div class="card-clean p-3">
+          <span class="text-[10px] text-slate-400 uppercase block font-sans">Total Flexões</span>
+          <div class="text-xl font-bold text-white mt-0.5" id="stat-total-flexoes">0</div>
         </div>
-        <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
-          <span class="text-xs font-bold text-slate-400 block mb-1">Abdominais</span>
-          <div class="text-2xl font-black text-sky-400 font-mono" id="stat-total-abd">0</div>
-          <span class="text-[10px] text-slate-500">Volume Ficha A</span>
+        <div class="card-clean p-3">
+          <span class="text-[10px] text-slate-400 uppercase block font-sans">Total Abdominais</span>
+          <div class="text-xl font-bold text-white mt-0.5" id="stat-total-abd">0</div>
         </div>
-        <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
-          <span class="text-xs font-bold text-slate-400 block mb-1">Total Corrida (km)</span>
-          <div class="text-2xl font-black text-emerald-400 font-mono" id="stat-total-km">0.0 km</div>
-          <span class="text-[10px] text-slate-500">Soviético + Assessoria</span>
+        <div class="card-clean p-3">
+          <span class="text-[10px] text-slate-400 uppercase block font-sans">Distância Corrida</span>
+          <div class="text-xl font-bold text-emerald-400 mt-0.5" id="stat-total-km">0.0 km</div>
         </div>
       </div>
 
-      <!-- GRÁFICOS VISUAIS (CHART.JS) -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="glass-panel rounded-2xl p-5 border border-slate-800">
-          <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-2">
-            <i data-lucide="bar-chart-2" class="w-4 h-4 text-rose-400"></i> Volume de Repetições por Treino
-          </h3>
-          <div class="h-64">
+      <!-- Gráficos -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <div class="card-clean p-4">
+          <span class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-2">Volume por Treino</span>
+          <div class="h-56">
             <canvas id="chart-volume"></canvas>
           </div>
         </div>
-
-        <div class="glass-panel rounded-2xl p-5 border border-slate-800">
-          <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-2">
-            <i data-lucide="trending-up" class="w-4 h-4 text-emerald-400"></i> Evolução da Corrida (Quilometragem)
-          </h3>
-          <div class="h-64">
+        <div class="card-clean p-4">
+          <span class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-2">Quilometragem Acumulada</span>
+          <div class="h-56">
             <canvas id="chart-corrida"></canvas>
           </div>
         </div>
       </div>
 
-      <!-- Tabela Histórico -->
-      <div class="glass-panel rounded-2xl p-5 md:p-6 border border-slate-800">
-        <div class="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 mb-4 gap-2">
-          <h3 class="text-sm font-bold text-white flex items-center gap-2">
-            <i data-lucide="calendar" class="w-4 h-4 text-rose-400"></i> Registro de Treinos Realizados
-          </h3>
-          <div class="flex items-center gap-2">
-            <select id="filter-ficha" onchange="renderHistoryTable()" class="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded-lg px-2.5 py-1 focus:outline-none">
-              <option value="ALL">Todas as Fichas</option>
-              <option value="A">Ficha A</option>
-              <option value="B">Ficha B</option>
-              <option value="C">Ficha C</option>
-              <option value="ASS">Assessoria</option>
-            </select>
-            <button onclick="exportHistoryCSV()" class="text-xs bg-slate-900 hover:bg-slate-800 text-slate-300 px-3 py-1 rounded-lg border border-slate-700 flex items-center gap-1.5 transition">
-              <i data-lucide="download" class="w-3.5 h-3.5"></i> Exportar Excel
-            </button>
-          </div>
+      <!-- Tabela -->
+      <div class="card-clean p-4">
+        <div class="flex items-center justify-between border-b border-[#1e2638] pb-2 mb-3">
+          <span class="text-xs font-bold text-white uppercase tracking-wider">Histórico de Sessões</span>
+          <button onclick="exportHistoryCSV()" class="btn-athletic text-[11px] bg-[#151a26] hover:bg-[#1e2638] text-slate-300 px-2 py-1 rounded border border-[#1e2638]">
+            Exportar CSV
+          </button>
         </div>
 
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-slate-900 text-slate-400 uppercase text-[10px] font-bold border-b border-slate-800">
+          <table class="w-full text-left text-xs text-slate-300 font-mono">
+            <thead class="bg-[#151a26] text-slate-400 uppercase text-[10px] border-b border-[#1e2638]">
               <tr>
-                <th class="py-2 px-3">Data</th>
-                <th class="py-2 px-3">Ficha</th>
-                <th class="py-2 px-3">Volume Principal</th>
-                <th class="py-2 px-3">Última Série (Falha)</th>
-                <th class="py-2 px-3">Corrida</th>
-                <th class="py-2 px-3">Próxima Sugestão</th>
-                <th class="py-2 px-3 text-right">Ação</th>
+                <th class="py-2 px-2.5">Data</th>
+                <th class="py-2 px-2.5">Ficha</th>
+                <th class="py-2 px-2.5">Volume Realizado</th>
+                <th class="py-2 px-2.5">Série Falha</th>
+                <th class="py-2 px-2.5">Corrida</th>
+                <th class="py-2 px-2.5">Próxima Sugestão</th>
+                <th class="py-2 px-2.5 text-right">Ação</th>
               </tr>
             </thead>
-            <tbody id="history-table-body" class="divide-y divide-slate-800 font-mono">
-              <!-- Renderizado via JS -->
+            <tbody id="history-table-body" class="divide-y divide-[#1e2638]">
+              <!-- Preenchido via JS -->
             </tbody>
           </table>
         </div>
@@ -740,64 +668,51 @@
 
 
     <!-- ======================================================== -->
-    <!-- ABA 7: SINCRONIZAÇÃO EM NUVEM & BACKUP                  -->
+    <!-- ABA 7: SINCRONIZAÇÃO & BACKUP                            -->
     <!-- ======================================================== -->
-    <section id="tab-ajustes" class="tab-content space-y-6">
+    <section id="tab-ajustes" class="tab-content space-y-4">
+      
+      <div class="card-clean p-4 space-y-3">
+        <h2 class="text-xs font-bold text-white uppercase tracking-wider border-b border-[#1e2638] pb-1.5">
+          Sincronização entre Aparelhos
+        </h2>
+        <p class="text-xs text-slate-400">
+          Para transferir seus treinos entre celular e computador sem precisar de cadastro, gere um link direto:
+        </p>
 
-      <!-- SINCRONIZAÇÃO POR LINK / WHATSAPP (MUITO PRÁTICO) -->
-      <div class="glass-panel rounded-2xl p-5 md:p-6 border border-emerald-500/30 bg-gradient-to-br from-emerald-950/20 via-slate-900 to-slate-900 space-y-4">
-        <div class="flex items-start gap-3">
-          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
-            <i data-lucide="share-2" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <h3 class="text-base font-bold text-white">Sincronização Instantânea com Seu Celular</h3>
-            <p class="text-xs text-slate-300 mt-0.5">
-              Envie seus treinos e configurações do computador para o seu celular em 1 toque (sem precisar cadastrar conta nem senha).
-            </p>
-          </div>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-3 pt-2">
-          <button onclick="shareDataToWhatsApp()" class="btn-pressable px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/50 transition">
-            <i data-lucide="send" class="w-4 h-4"></i> Enviar Link de Sincronização para Meu WhatsApp
+        <div class="flex flex-wrap gap-2 pt-1 text-xs">
+          <button onclick="shareDataToWhatsApp()" class="btn-athletic px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex items-center gap-1.5">
+            <i data-lucide="send" class="w-3.5 h-3.5"></i> Enviar Link no WhatsApp
           </button>
 
-          <button onclick="copySyncLink()" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 font-semibold text-xs flex items-center gap-2 transition">
-            <i data-lucide="copy" class="w-4 h-4"></i> Copiar Link de Sincronização
+          <button onclick="copySyncLink()" class="btn-athletic px-3 py-2 rounded-lg bg-[#151a26] hover:bg-[#1e2638] text-slate-200 border border-[#1e2638] flex items-center gap-1.5 font-medium">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar Link de Dados
           </button>
         </div>
       </div>
 
-      <!-- Backup em Arquivo JSON -->
-      <div class="glass-panel rounded-2xl p-5 md:p-6 border border-slate-800 space-y-4">
-        <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center gap-2">
-          <i data-lucide="database" class="w-4 h-4 text-sky-400"></i> Arquivos de Backup (JSON)
-        </h3>
+      <div class="card-clean p-4 space-y-3">
+        <h2 class="text-xs font-bold text-white uppercase tracking-wider border-b border-[#1e2638] pb-1.5">
+          Arquivo de Segurança (Backup)
+        </h2>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <button onclick="downloadBackupJSON()" class="p-4 rounded-xl bg-slate-900 hover:bg-slate-850 border border-slate-800 text-left transition flex items-start gap-3">
-            <i data-lucide="download" class="w-5 h-5 text-sky-400 flex-shrink-0 mt-0.5"></i>
-            <div>
-              <span class="text-xs font-bold text-white block">Baixar Arquivo de Backup</span>
-              <span class="text-[10px] text-slate-400">Gera um arquivo com todo o histórico de treinos.</span>
-            </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          <button onclick="downloadBackupJSON()" class="p-3 rounded-lg bg-[#151a26] hover:bg-[#1e2638] border border-[#1e2638] text-left">
+            <span class="font-bold text-white block">Baixar Arquivo JSON</span>
+            <span class="text-[10px] text-slate-400">Salva cópia de segurança no disco.</span>
           </button>
 
-          <label class="p-4 rounded-xl bg-slate-900 hover:bg-slate-850 border border-slate-800 text-left transition flex items-start gap-3 cursor-pointer">
-            <i data-lucide="upload" class="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5"></i>
-            <div>
-              <span class="text-xs font-bold text-white block">Restaurar de um Arquivo</span>
-              <span class="text-[10px] text-slate-400">Selecione o arquivo baixado anteriormente.</span>
-              <input type="file" id="backup-file-input" accept=".json" onchange="restoreBackupJSON(event)" class="hidden">
-            </div>
+          <label class="p-3 rounded-lg bg-[#151a26] hover:bg-[#1e2638] border border-[#1e2638] text-left cursor-pointer">
+            <span class="font-bold text-white block">Restaurar Arquivo JSON</span>
+            <span class="text-[10px] text-slate-400">Recarrega cópia salva anteriormente.</span>
+            <input type="file" id="backup-file-input" accept=".json" onchange="restoreBackupJSON(event)" class="hidden">
           </label>
         </div>
 
-        <div class="border-t border-slate-800 pt-3 flex justify-between items-center text-xs">
-          <span class="text-slate-500">Quer começar do zero limpo?</span>
-          <button onclick="clearAllData()" class="text-rose-500 hover:underline flex items-center gap-1">
-            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Resetar Todos os Dados
+        <div class="border-t border-[#1e2638] pt-2 flex justify-between items-center text-xs">
+          <span class="text-slate-500 text-[11px]">Deseja apagar todos os registros locais?</span>
+          <button onclick="clearAllData()" class="text-rose-500 hover:underline text-[11px]">
+            Resetar Banco Local
           </button>
         </div>
       </div>
@@ -806,34 +721,33 @@
 
   </main>
 
-  <!-- MODAL DE REGISTRO MANUAL -->
+  <!-- MODAL MANUAL -->
   <div id="modal-manual" class="fixed inset-0 z-50 hidden modal-overlay flex items-center justify-center p-4">
-    <div class="bg-slate-900 rounded-2xl border border-slate-700 max-w-lg w-full p-6 shadow-2xl relative">
-      <button onclick="closeManualModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
-        <i data-lucide="x" class="w-5 h-5"></i>
+    <div class="bg-[#10141e] rounded-xl border border-[#1e2638] max-w-md w-full p-5 shadow-2xl relative">
+      <button onclick="closeManualModal()" class="absolute top-3.5 right-3.5 text-slate-400 hover:text-white">
+        <i data-lucide="x" class="w-4 h-4"></i>
       </button>
       
-      <h3 class="text-base font-bold text-white mb-1" id="manual-modal-title">
-        Registrar Treino
+      <h3 class="text-sm font-bold text-white mb-0.5" id="manual-modal-title">
+        Registrar Sessão
       </h3>
-      <p class="text-xs text-slate-400 mb-4">Insira o que você executou hoje para salvar no histórico.</p>
+      <p class="text-[11px] text-slate-400 mb-3">Preencha o que foi executado.</p>
 
-      <form id="manual-form" onsubmit="submitManualWorkout(event)" class="space-y-4">
-        <div id="manual-fields-container" class="space-y-3"></div>
+      <form id="manual-form" onsubmit="submitManualWorkout(event)" class="space-y-3">
+        <div id="manual-fields-container" class="space-y-2.5"></div>
 
-        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
-          <button type="button" onclick="closeManualModal()" class="px-4 py-2 rounded-lg bg-slate-800 text-xs text-slate-300">
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-[#1e2638]">
+          <button type="button" onclick="closeManualModal()" class="px-3 py-1.5 rounded bg-[#151a26] text-xs text-slate-300">
             Cancelar
           </button>
-          <button type="submit" class="px-5 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs">
-            Salvar Treino
+          <button type="submit" class="px-3.5 py-1.5 rounded bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs">
+            Salvar
           </button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- SCRIPT PRINCIPAL COM CACHE BUSTING -->
-  <script src="app.js?v=2.2"></script>
+  <script src="app.js?v=3.0"></script>
 </body>
 </html>

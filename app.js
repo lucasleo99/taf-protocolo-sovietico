@@ -1,6 +1,7 @@
 /**
- * TAF PROTOCOLO SOVIÉTICO - SISTEMA INTELIGENTE 2.0
- * Calibração Real, Wake Lock, Calculadora de Edital, Gráficos Chart.js e Sync Instantâneo
+ * TAF PROTOCOLO SOVIÉTICO - SISTEMA INTELIGENTE 3.0
+ * Design Limpo e Profissional (Sem estética de IA)
+ * Suporte a Carga Externa (Colete/Cinto de Peso), Autorregulação, Wake Lock e Gráficos
  */
 
 // Estado Global da Aplicação
@@ -10,14 +11,16 @@ const AppState = {
     age: 30,
     hrRest: 55,
     barraMod: 'roxa',
-    barraModLabel: 'Superband Roxa (Média)'
+    barraModLabel: 'Superband Roxa'
   },
   currentFicha: 'A',
   targets: {
     A: {
       barraReps: 1,
       barraMod: 'roxa',
+      barraExtraKg: 0,
       abdReps: 8,
+      abdExtraKg: 0,
       runMin: 20
     },
     B: {
@@ -26,6 +29,7 @@ const AppState = {
     },
     C: {
       flexaoReps: 3,
+      flexaoExtraKg: 0,
       runMin: 40
     },
     NC: {
@@ -50,21 +54,7 @@ const AppState = {
   simulados: []
 };
 
-// Forçar Atualização Limpando Cache do Celular
-function forceReloadApp() {
-  const btn = document.getElementById('btn-force-reload');
-  if (btn) {
-    const icon = btn.querySelector('i');
-    if (icon) icon.classList.add('animate-spin');
-  }
-
-  // Gera timestamp para forçar o navegador a baixar a versão mais nova do servidor
-  setTimeout(() => {
-    window.location.href = window.location.origin + window.location.pathname + '?reload=' + Date.now();
-  }, 250);
-}
-
-// Wake Lock API (Impede celular de desligar tela no treino)
+// Wake Lock API (Impede bloqueio de tela durante o treino)
 let wakeLock = null;
 
 async function requestWakeLock() {
@@ -75,7 +65,7 @@ async function requestWakeLock() {
       if (pill) pill.classList.remove('hidden');
     }
   } catch (err) {
-    console.log('Wake Lock não suportado ou bloqueado:', err);
+    console.log('Wake Lock indisponível:', err);
   }
 }
 
@@ -88,21 +78,25 @@ function releaseWakeLock() {
   }
 }
 
+function forceReloadApp() {
+  const btn = document.getElementById('btn-force-reload');
+  if (btn) {
+    const icon = btn.querySelector('i');
+    if (icon) icon.classList.add('animate-spin');
+  }
+  setTimeout(() => {
+    window.location.href = window.location.origin + window.location.pathname + '?reload=' + Date.now();
+  }, 200);
+}
+
 // ============================================================
-// INICIALIZAÇÃO & VERIFICAÇÃO DE SINCRONIZAÇÃO
+// INICIALIZAÇÃO & PERSISTÊNCIA
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. Checar se abriu por um link de sincronização (#sync=...)
   checkUrlSyncHash();
-
-  // 2. Carregar do LocalStorage
   loadFromLocalStorage();
-
-  // 3. Checar calibração inicial
   checkCalibrationStatus();
-
-  // 4. Calcular Zonas e Atualizar Telas
   calculateHeartZones();
   renderFichaCard('A');
   updateDesmameWidget();
@@ -122,14 +116,13 @@ function checkCalibrationStatus() {
   const levelDesc = document.getElementById('header-level-desc');
 
   if (!AppState.isCalibrated && AppState.simulados.length === 0) {
-    // Usuário novo!
     if (onboardingBanner) onboardingBanner.classList.remove('hidden');
-    if (levelDesc) levelDesc.innerText = "Nível: Não Calibrado";
+    if (levelDesc) levelDesc.innerText = "Não Calibrado";
   } else {
     if (onboardingBanner) onboardingBanner.classList.add('hidden');
     const latest = AppState.simulados[0];
     if (levelDesc && latest) {
-      levelDesc.innerText = `Barra: ${latest.barraTarget} rep (${getAssistanceLabel(latest.barraMod)}) | Flexão: ${latest.flexaoTarget} reps`;
+      levelDesc.innerText = `Barra: ${latest.barraTarget} rep (${getAssistanceLabel(latest.barraMod, AppState.targets.A.barraExtraKg)}) | Flexão: ${latest.flexaoTarget}`;
     }
   }
 }
@@ -158,11 +151,10 @@ function loadFromLocalStorage() {
       if (parsed.history) AppState.history = parsed.history;
       if (parsed.simulados) AppState.simulados = parsed.simulados;
     } catch (e) {
-      console.error("Erro ao ler dados salvos:", e);
+      console.error("Erro ao ler dados:", e);
     }
   }
 
-  // Preencher inputs de perfil se existirem
   const ageInput = document.getElementById('fc-idade');
   const restInput = document.getElementById('fc-repouso');
   if (ageInput) ageInput.value = AppState.profile.age;
@@ -175,7 +167,7 @@ function loadFromLocalStorage() {
 
 function switchTab(tabId) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(el => {
+  document.querySelectorAll('.nav-tab-clean').forEach(el => {
     el.classList.remove('active', 'border-rose-500', 'text-rose-400');
     el.classList.add('border-transparent', 'text-slate-400');
   });
@@ -199,7 +191,7 @@ function switchTab(tabId) {
 }
 
 // ============================================================
-// CALIBRAÇÃO DIDÁTICA DO PROTOCOLO (TESTE INICIAL / SIMULADO)
+// CALIBRAÇÃO DO PROTOCOLO (TESTE INICIAL / SIMULADO)
 // ============================================================
 
 function saveSimulado(e) {
@@ -212,7 +204,6 @@ function saveSimulado(e) {
   const distCorrida = document.getElementById('sim-dist').value || "2400";
   const tempoCorrida = document.getElementById('sim-tempo').value || "12:00";
 
-  // Regra Soviética: repetições submáximas (~20% do teste máximo)
   let barraTarget = Math.max(1, Math.floor(barraMax * 0.20));
   let flexaoTarget = Math.max(1, Math.floor(flexaoMax * 0.18));
   let abdTarget = Math.max(5, Math.floor(abdMax * 0.20));
@@ -242,9 +233,10 @@ function saveSimulado(e) {
   checkCalibrationStatus();
   renderSimuladosTable();
   renderFichaCard(AppState.currentFicha);
+  updateDesmameWidget();
   calculateEditalScore();
 
-  alert(`🎯 PROTOCOLO CALIBRADO COM SEUS ÍNDICES!\n\nMetas calculadas para as suas 20 séries de EMOM:\n• Barra Fixa: ${barraTarget} rep/min (${getAssistanceLabel(barraMod)})\n• Flexão: ${flexaoTarget} reps/min\n• Abdominal: ${abdTarget} reps/min\n\nAgora você já pode executar a Ficha A no timer!`);
+  alert(`Protocolo Calibrado com Sucesso.\n\nMetas por minuto (20 séries):\n• Barra Fixa: ${barraTarget} rep (${getAssistanceLabel(barraMod, AppState.targets.A.barraExtraKg)})\n• Flexão: ${flexaoTarget} reps\n• Abdominal: ${abdTarget} reps`);
   switchTab('treino');
 }
 
@@ -253,21 +245,21 @@ function renderSimuladosTable() {
   if (!tbody) return;
 
   if (AppState.simulados.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-500">Nenhum teste registrado ainda. Preencha seus números acima para calibrar o sistema!</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-slate-500 font-sans">Nenhum teste registrado ainda.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = AppState.simulados.map(s => `
-    <tr class="hover:bg-slate-900/60 transition">
-      <td class="py-2.5 px-3 text-white">${s.date}</td>
-      <td class="py-2.5 px-3 text-rose-400 font-bold">${s.barraMax} reps <span class="text-[10px] text-slate-400">(${getAssistanceLabel(s.barraMod)})</span></td>
-      <td class="py-2.5 px-3 text-emerald-400 font-bold">${s.barraTarget} rep/min</td>
-      <td class="py-2.5 px-3 text-amber-400 font-bold">${s.flexaoMax} reps</td>
-      <td class="py-2.5 px-3 text-emerald-400 font-bold">${s.flexaoTarget} reps/min</td>
-      <td class="py-2.5 px-3 text-sky-400 font-bold">${s.abdMax} reps</td>
-      <td class="py-2.5 px-3 text-slate-300">${s.corrida}</td>
-      <td class="py-2.5 px-3 text-right">
-        <button onclick="deleteSimulado(${s.id})" class="text-rose-500 hover:text-rose-400 text-xs">Excluir</button>
+    <tr class="hover:bg-[#151a26]/60 transition">
+      <td class="py-2 px-2.5 text-white">${s.date}</td>
+      <td class="py-2 px-2.5 text-slate-200">${s.barraMax} reps <span class="text-[10px] text-slate-400">(${getAssistanceLabel(s.barraMod, 0)})</span></td>
+      <td class="py-2 px-2.5 text-rose-400 font-bold">${s.barraTarget} rep</td>
+      <td class="py-2 px-2.5 text-slate-200">${s.flexaoMax} reps</td>
+      <td class="py-2 px-2.5 text-rose-400 font-bold">${s.flexaoTarget} reps</td>
+      <td class="py-2 px-2.5 text-slate-200">${s.abdMax} reps</td>
+      <td class="py-2 px-2.5 text-slate-400">${s.corrida}</td>
+      <td class="py-2 px-2.5 text-right">
+        <button onclick="deleteSimulado(${s.id})" class="text-slate-500 hover:text-rose-400 text-xs font-sans">Excluir</button>
       </td>
     </tr>
   `).join('');
@@ -285,7 +277,7 @@ function deleteSimulado(id) {
 }
 
 // ============================================================
-// CALCULADORA DE PONTUAÇÃO DO EDITAL (CONCURSOS)
+// SIMULADOR DE PONTUAÇÃO DO EDITAL
 // ============================================================
 
 function calculateEditalScore() {
@@ -294,6 +286,7 @@ function calculateEditalScore() {
 
   const latest = AppState.simulados[0] || {
     barraMax: 1,
+    barraMod: 'roxa',
     flexaoMax: 0,
     abdMax: 0,
     corrida: "2400m em 12:00"
@@ -307,8 +300,7 @@ function calculateEditalScore() {
   let tableRows = [];
 
   if (editalType === 'PF_AGENTE') {
-    // Barra Fixa PF: Min 2 reps (2.0 pts), 3 (2.5), 4 (3.0), 5 (3.5), 6 (4.0), 7 (4.5), 8+ (5.0 pts)
-    const b = latest.barraMod === 'livre' ? latest.barraMax : 0; // elástico não conta na prova
+    const b = latest.barraMod === 'livre' ? latest.barraMax : 0;
     if (b < 2) barraPts = 0;
     else if (b === 2) barraPts = 2.0;
     else if (b === 3) barraPts = 2.5;
@@ -318,7 +310,6 @@ function calculateEditalScore() {
     else if (b === 7) barraPts = 4.5;
     else barraPts = 5.0;
 
-    // Abdominal Remador PF: Min 36 reps (2.0 pts)
     const a = latest.abdMax;
     if (a < 36) abdPts = 0;
     else if (a <= 37) abdPts = 2.0;
@@ -329,19 +320,16 @@ function calculateEditalScore() {
     else if (a <= 47) abdPts = 4.5;
     else abdPts = 5.0;
 
-    // Corrida 12 min PF: Min 2.000m (2.0 pts), 2.350m+ (5.0 pts)
-    corridaPts = 3.0; // estimativa padrão de ritmo médio
-
+    corridaPts = 3.0;
     const totalPts = barraPts + abdPts + corridaPts;
-    isAprovado = barraPts >= 2.0 && abdPts >= 2.0 && corridaPts >= 2.0 && (totalPts >= 8.0);
+    isAprovado = barraPts >= 2.0 && abdPts >= 2.0 && (totalPts >= 8.0);
 
     tableRows = [
-      { nome: "Barra Fixa (Pronada)", atual: `${latest.barraMax} reps (${getAssistanceLabel(latest.barraMod)})`, min: "2 repetições livres", nota: `${barraPts.toFixed(1)} / 5.0 pts`, max: "8 reps (5.0 pts)" },
-      { nome: "Abdominal Remador (1 min)", atual: `${latest.abdMax} reps`, min: "36 repetições", nota: `${abdPts.toFixed(1)} / 5.0 pts`, max: "48 reps (5.0 pts)" },
-      { nome: "Corrida 12 Minutos", atual: latest.corrida, min: "2.000 metros", nota: `${corridaPts.toFixed(1)} / 5.0 pts`, max: "2.600m (5.0 pts)" }
+      { nome: "Barra Fixa (Pronada)", atual: `${latest.barraMax} reps (${getAssistanceLabel(latest.barraMod, 0)})`, min: "2 repetições livres", nota: `${barraPts.toFixed(1)} / 5.0`, max: "8 reps (5.0)" },
+      { nome: "Abdominal Remador", atual: `${latest.abdMax} reps`, min: "36 repetições", nota: `${abdPts.toFixed(1)} / 5.0`, max: "48 reps (5.0)" },
+      { nome: "Corrida 12 Minutos", atual: latest.corrida, min: "2.000 metros", nota: `${corridaPts.toFixed(1)} / 5.0`, max: "2.600m (5.0)" }
     ];
   } else {
-    // PRF / PC / PM
     const b = latest.barraMod === 'livre' ? latest.barraMax : 0;
     barraPts = b >= 3 ? 3.0 : 0;
     flexaoPts = latest.flexaoMax >= 25 ? 3.0 : 1.5;
@@ -349,13 +337,12 @@ function calculateEditalScore() {
     isAprovado = barraPts >= 3.0 && flexaoPts >= 2.5;
 
     tableRows = [
-      { nome: "Barra Fixa", atual: `${latest.barraMax} reps (${getAssistanceLabel(latest.barraMod)})`, min: "3 repetições livres", nota: `${barraPts.toFixed(1)} pts`, max: "10 reps" },
+      { nome: "Barra Fixa", atual: `${latest.barraMax} reps (${getAssistanceLabel(latest.barraMod, 0)})`, min: "3 repetições livres", nota: `${barraPts.toFixed(1)} pts`, max: "10 reps" },
       { nome: "Flexão de Braços", atual: `${latest.flexaoMax} reps`, min: "25 repetições", nota: `${flexaoPts.toFixed(1)} pts`, max: "40 reps" },
       { nome: "Abdominal", atual: `${latest.abdMax} reps`, min: "35 repetições", nota: `${abdPts.toFixed(1)} pts`, max: "45 reps" }
     ];
   }
 
-  // Atualizar Placar
   const statusCard = document.getElementById('edital-status-card');
   const statusText = document.getElementById('edital-status-text');
   const statusDesc = document.getElementById('edital-status-desc');
@@ -365,49 +352,49 @@ function calculateEditalScore() {
 
   if (statusText) {
     if (isAprovado) {
-      statusText.innerText = "APROVADO! 🎉";
-      statusText.className = "text-2xl font-black text-emerald-400 my-1";
-      statusCard.className = "p-4 rounded-xl border border-emerald-500/40 bg-emerald-950/20 text-center flex flex-col justify-center items-center";
-      statusDesc.innerText = "Você atinge os índices mínimos exigidos pelo edital.";
+      statusText.innerText = "APROVADO";
+      statusText.className = "text-lg font-bold text-emerald-400 font-mono my-0.5";
+      statusCard.className = "p-3.5 rounded-lg border border-emerald-500/30 bg-emerald-950/10";
+      statusDesc.innerText = "Índices mínimos atingidos.";
     } else {
-      statusText.innerText = "REPROVADO ⚠️";
-      statusText.className = "text-2xl font-black text-rose-500 my-1";
-      statusCard.className = "p-4 rounded-xl border border-rose-500/40 bg-rose-950/20 text-center flex flex-col justify-center items-center";
-      statusDesc.innerText = "Atenção: A barra fixa exige pelo menos repetições livres válidas.";
+      statusText.innerText = "REPROVADO";
+      statusText.className = "text-lg font-bold text-rose-500 font-mono my-0.5";
+      statusCard.className = "p-3.5 rounded-lg border border-rose-500/30 bg-rose-950/10";
+      statusDesc.innerText = "Abaixo do índice mínimo em barra fixa livre.";
     }
   }
 
   if (pointsText) pointsText.innerText = `${(barraPts + abdPts + corridaPts + flexaoPts).toFixed(1)} pts`;
-  if (critText) critText.innerText = latest.barraMod !== 'livre' ? "Barra Fixa (Precisa do desmame)" : "Manutenção de Ritmo";
+  if (critText) critText.innerText = latest.barraMod !== 'livre' ? "Barra Fixa (Elástico)" : "Consistência";
 
   if (tableBody) {
     tableBody.innerHTML = tableRows.map(r => `
-      <tr class="hover:bg-slate-900/60 transition">
-        <td class="py-2.5 px-3 text-white font-semibold">${r.nome}</td>
-        <td class="py-2.5 px-3 text-amber-300">${r.atual}</td>
-        <td class="py-2.5 px-3 text-slate-300">${r.min}</td>
-        <td class="py-2.5 px-3 font-bold ${r.nota.startsWith('0') ? 'text-rose-500' : 'text-emerald-400'}">${r.nota}</td>
-        <td class="py-2.5 px-3 text-slate-400">${r.max}</td>
+      <tr class="hover:bg-[#151a26]/40 transition">
+        <td class="py-2 px-2.5 text-white font-medium font-sans">${r.nome}</td>
+        <td class="py-2 px-2.5 text-slate-300">${r.atual}</td>
+        <td class="py-2 px-2.5 text-slate-400">${r.min}</td>
+        <td class="py-2 px-2.5 font-bold ${r.nota.startsWith('0') ? 'text-rose-500' : 'text-emerald-400'}">${r.nota}</td>
+        <td class="py-2 px-2.5 text-slate-400">${r.max}</td>
       </tr>
     `).join('');
   }
 }
 
 // ============================================================
-// RENDERIZAÇÃO DAS FICHAS DE TREINO (A, B, C)
+// RENDERIZAÇÃO DAS FICHAS DE TREINO (A, B, C, NC)
 // ============================================================
 
 function selectFicha(fichaKey) {
   AppState.currentFicha = fichaKey;
   
   document.querySelectorAll('.ficha-selector').forEach(btn => {
-    btn.classList.remove('border-rose-500', 'bg-rose-950/40');
-    btn.classList.add('border-slate-800', 'bg-slate-900/60');
+    btn.classList.remove('border-rose-500', 'bg-rose-950/20');
+    btn.classList.add('border-[#1e2638]', 'bg-[#10141e]');
   });
   const activeBtn = document.getElementById(`btn-ficha-${fichaKey}`);
   if (activeBtn) {
-    activeBtn.classList.add('border-rose-500', 'bg-rose-950/40');
-    activeBtn.classList.remove('border-slate-800', 'bg-slate-900/60');
+    activeBtn.classList.add('border-rose-500', 'bg-rose-950/20');
+    activeBtn.classList.remove('border-[#1e2638]', 'bg-[#10141e]');
   }
 
   renderFichaCard(fichaKey);
@@ -424,185 +411,174 @@ function renderFichaCard(fichaKey) {
   if (fichaKey === 'A') {
     const t = AppState.targets.A;
     container.innerHTML = `
-      <div class="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
+      <div class="flex flex-wrap items-center justify-between border-b border-[#1e2638] pb-2.5 gap-2">
         <div>
-          <span class="text-xs font-bold text-rose-400 uppercase tracking-wider block">Ficha do Dia</span>
-          <h2 class="text-lg md:text-xl font-black text-white">Ficha A: Barra Fixa + Abdominal + Corrida</h2>
+          <span class="text-[10px] font-mono font-bold text-rose-400 uppercase tracking-wider block">Sessão do Dia</span>
+          <h2 class="text-sm md:text-base font-bold text-white">Ficha A: Barra Fixa + Abdominal + Corrida</h2>
         </div>
-        <div class="flex items-center gap-2">
-          <button onclick="openManualModal('A')" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs font-semibold text-slate-300 border border-slate-800 transition">
+        <div class="flex items-center gap-1.5">
+          <button onclick="openManualModal('A')" class="btn-athletic px-2.5 py-1.5 rounded bg-[#151a26] hover:bg-[#1e2638] text-xs text-slate-300 border border-[#1e2638]">
             Preencher Manual
           </button>
-          <button onclick="launchWorkoutTimer('A')" class="btn-pressable px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-xs font-bold text-white flex items-center gap-2 shadow-lg shadow-rose-950/50 transition">
-            <i data-lucide="play" class="w-4 h-4"></i> Iniciar no EMOM Timer
+          <button onclick="launchWorkoutTimer('A')" class="btn-athletic px-3 py-1.5 rounded bg-rose-600 hover:bg-rose-500 text-xs font-bold text-white flex items-center gap-1.5">
+            <i data-lucide="play" class="w-3.5 h-3.5"></i> Iniciar no Timer
           </button>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <!-- Aquecimento -->
-        <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800">
-          <span class="text-xs font-bold text-slate-400 block mb-1">1. Aquecimento</span>
-          <div class="text-sm font-semibold text-white">10 a 15 reps leves</div>
-          <p class="text-xs text-slate-400 mt-1">1 minuto de descanso antes de começar o EMOM.</p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs">
+        <div class="card-subtle p-3">
+          <span class="text-[10px] text-slate-400 uppercase font-mono block">1. Aquecimento</span>
+          <div class="text-xs font-semibold text-white mt-0.5">10 a 15 reps leves</div>
+          <span class="text-[10px] text-slate-500 mt-0.5 block">1 min descanso antes do EMOM</span>
         </div>
 
-        <!-- EMOM 40' -->
-        <div class="bg-slate-900/80 p-3.5 rounded-xl border border-rose-900/60 ring-1 ring-rose-500/30">
-          <span class="text-xs font-bold text-rose-400 block mb-1">2. Bloco Principal (40' EMOM)</span>
-          <div class="space-y-1 text-xs text-slate-200">
-            <div class="flex justify-between items-center bg-slate-800/80 px-2 py-1 rounded">
-              <span>Minutos Ímpares (Barra):</span>
-              <span class="font-bold text-rose-400 font-mono">${t.barraReps} rep (${getAssistanceLabel(t.barraMod)})</span>
+        <div class="card-subtle p-3 border-rose-900/60 bg-rose-950/10">
+          <span class="text-[10px] text-rose-400 uppercase font-mono font-bold block">2. Bloco EMOM (40 Minutos)</span>
+          <div class="space-y-1 mt-1 text-[11px] font-mono">
+            <div class="flex justify-between">
+              <span class="text-slate-400">Min. Ímpares (Barra):</span>
+              <span class="text-white font-bold">${t.barraReps} rep (${getAssistanceLabel(t.barraMod, t.barraExtraKg)})</span>
             </div>
-            <div class="flex justify-between items-center bg-slate-800/80 px-2 py-1 rounded">
-              <span>Minutos Pares (Abdominal):</span>
-              <span class="font-bold text-sky-400 font-mono">${t.abdReps} reps</span>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Min. Pares (Abdominal):</span>
+              <span class="text-white font-bold">${t.abdReps} reps ${t.abdExtraKg > 0 ? `(+${t.abdExtraKg}kg)` : ''}</span>
             </div>
-            <div class="text-[11px] text-amber-300 font-semibold pt-1">
-              🔥 Min 39 e 40: <strong>Até a falha técnica!</strong>
-            </div>
+            <span class="text-[10px] text-amber-300 block pt-0.5 font-sans">Minutos 39 e 40: até a falha técnica</span>
           </div>
         </div>
 
-        <!-- Corrida 20' -->
-        <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800">
-          <span class="text-xs font-bold text-emerald-400 block mb-1">3. Corrida Contínua (20')</span>
-          <div class="space-y-1 text-xs text-slate-300 font-mono">
-            <div>&bull; 5' em <strong>Z2</strong> (${z2Range})</div>
-            <div>&bull; 10' em <strong>Z3</strong> (${z3Range})</div>
-            <div>&bull; 5' em <strong>Z2</strong> (${z2Range})</div>
+        <div class="card-subtle p-3">
+          <span class="text-[10px] text-emerald-400 uppercase font-mono block">3. Corrida Contínua (20 Min)</span>
+          <div class="space-y-0.5 mt-1 text-[11px] font-mono text-slate-300">
+            <div>5' Z2 (${z2Range})</div>
+            <div>10' Z3 (${z3Range})</div>
+            <div>5' Z2 (${z2Range})</div>
           </div>
-          <span class="text-[10px] text-slate-500 mt-1 block">Pronto para lançar no Garmin</span>
         </div>
       </div>
 
-      <!-- Seletor de Elástico da Barra -->
-      <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div class="flex items-center gap-2">
-          <span class="text-slate-400 font-semibold">Assistência da Barra Hoje:</span>
-          <select id="select-ficha-a-mod" onchange="updateFichaAMod(this.value)" class="bg-slate-800 border border-slate-700 text-amber-300 font-bold rounded-lg px-2.5 py-1 focus:outline-none">
-            <option value="roxa" ${t.barraMod === 'roxa' ? 'selected' : ''}>Superband Roxa (Média)</option>
-            <option value="verde" ${t.barraMod === 'verde' ? 'selected' : ''}>Superband Verde (Forte)</option>
-            <option value="vermelha" ${t.barraMod === 'vermelha' ? 'selected' : ''}>Superband Vermelha (Leve)</option>
-            <option value="livre" ${t.barraMod === 'livre' ? 'selected' : ''}>Sem elástico (Livre)</option>
-            <option value="excentrica" ${t.barraMod === 'excentrica' ? 'selected' : ''}>Excêntrica (Descida 4s)</option>
-          </select>
+      <!-- Configuração de Carga e Assistência -->
+      <div class="p-2.5 rounded-lg bg-[#151a26]/60 border border-[#1e2638] flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-1.5">
+            <span class="text-slate-400 text-[11px]">Tipo de Barra:</span>
+            <select id="select-ficha-a-mod" onchange="updateFichaAMod(this.value)" class="bg-[#10141e] border border-[#1e2638] text-slate-200 text-xs rounded px-2 py-1 focus:outline-none">
+              <option value="roxa" ${t.barraMod === 'roxa' ? 'selected' : ''}>Superband Roxa</option>
+              <option value="verde" ${t.barraMod === 'verde' ? 'selected' : ''}>Superband Verde</option>
+              <option value="vermelha" ${t.barraMod === 'vermelha' ? 'selected' : ''}>Superband Vermelha</option>
+              <option value="livre" ${t.barraMod === 'livre' ? 'selected' : ''}>Barra Livre (Peso Corporal)</option>
+              <option value="excentrica" ${t.barraMod === 'excentrica' ? 'selected' : ''}>Excêntrica (4s)</option>
+              <option value="colete" ${t.barraMod === 'colete' ? 'selected' : ''}>Sobrecarga / Colete</option>
+            </select>
+          </div>
+
+          <!-- Campo de Carga Extra (Item 6) -->
+          <div class="flex items-center gap-1.5">
+            <span class="text-slate-400 text-[11px]">Carga Extra:</span>
+            <div class="flex items-center bg-[#10141e] border border-[#1e2638] rounded px-2 py-0.5">
+              <input type="number" min="0" step="1" id="input-barra-extra" value="${t.barraExtraKg || 0}" onchange="updateBarraExtraKg(this.value)" class="w-12 bg-transparent text-white font-mono text-xs focus:outline-none">
+              <span class="text-[10px] text-slate-400">kg</span>
+            </div>
+          </div>
         </div>
 
-        <div class="text-slate-400 font-mono">
-          Volume Estimado: <strong class="text-white">${t.barraReps * 19}+ falha</strong> barras | <strong class="text-white">${t.abdReps * 19}+ falha</strong> abdominais
-        </div>
+        <span class="text-slate-400 font-mono text-[11px]">
+          Volume previsto: <strong class="text-white">${t.barraReps * 19}+ falha</strong> barras
+        </span>
       </div>
     `;
   } else if (fichaKey === 'B') {
     const t = AppState.targets.B;
     container.innerHTML = `
-      <div class="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
+      <div class="flex flex-wrap items-center justify-between border-b border-[#1e2638] pb-2.5 gap-2">
         <div>
-          <span class="text-xs font-bold text-amber-400 uppercase tracking-wider block">Treino de Tiros</span>
-          <h2 class="text-lg md:text-xl font-black text-white">Ficha B: Corrida Intervalada (52 minutos)</h2>
+          <span class="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-wider block">Sessão de Tiros</span>
+          <h2 class="text-sm md:text-base font-bold text-white">Ficha B: Intervalado (52 minutos)</h2>
         </div>
-        <div class="flex items-center gap-2">
-          <button onclick="openManualModal('B')" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs font-semibold text-slate-300 border border-slate-800 transition">
-            Registrar Tiro
+        <button onclick="openManualModal('B')" class="btn-athletic px-2.5 py-1.5 rounded bg-[#151a26] hover:bg-[#1e2638] text-xs text-slate-300 border border-[#1e2638]">
+          Registrar Tiro
+        </button>
+      </div>
+
+      <div class="flex items-center gap-2 mb-1">
+        <span class="text-slate-400 text-xs">Tipo:</span>
+        <div class="inline-flex rounded bg-[#151a26] p-0.5 border border-[#1e2638] text-xs font-mono">
+          <button onclick="setBType('B1')" class="px-2.5 py-1 rounded font-bold ${t.type === 'B1' ? 'bg-rose-600 text-white' : 'text-slate-400'}">
+            B.1 Curto
+          </button>
+          <button onclick="setBType('B2')" class="px-2.5 py-1 rounded font-bold ${t.type === 'B2' ? 'bg-slate-700 text-white' : 'text-slate-400'}">
+            B.2 Longo
           </button>
         </div>
       </div>
 
-      <div class="flex items-center gap-2 mb-2">
-        <span class="text-xs text-slate-400">Tipo de Tiro:</span>
-        <div class="inline-flex rounded-lg bg-slate-900 p-1 border border-slate-800">
-          <button onclick="setBType('B1')" class="px-3 py-1 text-xs font-bold rounded ${t.type === 'B1' ? 'bg-rose-600 text-white' : 'text-slate-400 hover:text-white'}">
-            B.1 - Tiro Curto
-          </button>
-          <button onclick="setBType('B2')" class="px-3 py-1 text-xs font-bold rounded ${t.type === 'B2' ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-white'}">
-            B.2 - Tiro Longo
-          </button>
-        </div>
-      </div>
-
-      <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-2 text-xs">
-        <span class="font-bold text-white block">Como Executar no Garmin:</span>
+      <div class="card-subtle p-3 text-xs font-mono text-slate-300">
         ${t.type === 'B1' ? `
-          <p class="text-slate-300 leading-relaxed font-mono">
-            Aquec. 5 min Z2 &rarr; 2 min Caminhada &rarr; <strong>20x [30 seg Tiro Máximo / 90 seg Caminhada]</strong> &rarr; Desaquec. 5 min Z2.
-          </p>
+          5' Z2 + 2' caminhada + <strong class="text-white">20x [30 seg tiro / 90 seg caminhada]</strong> + 5' Z2
         ` : `
-          <p class="text-slate-300 leading-relaxed font-mono">
-            Aquec. 5 min Z2 &rarr; 2 min Caminhada &rarr; <strong>8x [2 min Tiro Forte / 3 min Caminhada]</strong> &rarr; Desaquec. 5 min Z2.
-          </p>
+          5' Z2 + 2' caminhada + <strong class="text-white">8x [2 min tiro / 3 min caminhada]</strong> + 5' Z2
         `}
       </div>
     `;
   } else if (fichaKey === 'C') {
     const t = AppState.targets.C;
     container.innerHTML = `
-      <div class="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
+      <div class="flex flex-wrap items-center justify-between border-b border-[#1e2638] pb-2.5 gap-2">
         <div>
-          <span class="text-xs font-bold text-sky-400 uppercase tracking-wider block">Ficha do Dia</span>
-          <h2 class="text-lg md:text-xl font-black text-white">Ficha C: Flexão de Braço + 40' Trote Z2</h2>
+          <span class="text-[10px] font-mono font-bold text-sky-400 uppercase tracking-wider block">Sessão do Dia</span>
+          <h2 class="text-sm md:text-base font-bold text-white">Ficha C: Flexão de Braço + 40' Trote Z2</h2>
         </div>
-        <div class="flex items-center gap-2">
-          <button onclick="openManualModal('C')" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs font-semibold text-slate-300 border border-slate-800 transition">
+        <div class="flex items-center gap-1.5">
+          <button onclick="openManualModal('C')" class="btn-athletic px-2.5 py-1.5 rounded bg-[#151a26] hover:bg-[#1e2638] text-xs text-slate-300 border border-[#1e2638]">
             Preencher Manual
           </button>
-          <button onclick="launchWorkoutTimer('C')" class="btn-pressable px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-xs font-bold text-white flex items-center gap-2 shadow-lg shadow-rose-950/50 transition">
-            <i data-lucide="play" class="w-4 h-4"></i> Iniciar no EMOM Timer
+          <button onclick="launchWorkoutTimer('C')" class="btn-athletic px-3 py-1.5 rounded bg-rose-600 hover:bg-rose-500 text-xs font-bold text-white flex items-center gap-1.5">
+            <i data-lucide="play" class="w-3.5 h-3.5"></i> Iniciar no Timer
           </button>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800">
-          <span class="text-xs font-bold text-slate-400 block mb-1">1. Aquecimento</span>
-          <div class="text-sm font-semibold text-white">10 a 15 reps leves</div>
-          <p class="text-xs text-slate-400 mt-1">1 minuto de descanso.</p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs">
+        <div class="card-subtle p-3">
+          <span class="text-[10px] text-slate-400 uppercase font-mono block">1. Aquecimento</span>
+          <div class="text-xs font-semibold text-white mt-0.5">10 a 15 reps leves</div>
+          <span class="text-[10px] text-slate-500 mt-0.5 block">1 min descanso</span>
         </div>
 
-        <div class="bg-slate-900/80 p-3.5 rounded-xl border border-sky-900/60 ring-1 ring-sky-500/30">
-          <span class="text-xs font-bold text-sky-400 block mb-1">2. Bloco Principal (20' EMOM)</span>
-          <div class="space-y-1 text-xs text-slate-200">
-            <div class="flex justify-between items-center bg-slate-800/80 px-2 py-1 rounded">
-              <span>Minutos 1 a 19 (Flexão):</span>
-              <span class="font-bold text-sky-400 font-mono">${t.flexaoReps} reps/min</span>
+        <div class="card-subtle p-3 border-sky-900/60 bg-sky-950/10">
+          <span class="text-[10px] text-sky-400 uppercase font-mono font-bold block">2. Bloco EMOM (20 Minutos)</span>
+          <div class="space-y-1 mt-1 text-[11px] font-mono">
+            <div class="flex justify-between">
+              <span class="text-slate-400">Minutos 1 a 19:</span>
+              <span class="text-white font-bold">${t.flexaoReps} reps/min ${t.flexaoExtraKg > 0 ? `(+${t.flexaoExtraKg}kg)` : ''}</span>
             </div>
-            <div class="text-[11px] text-amber-300 font-semibold pt-1">
-              🔥 Minuto 20: <strong>Até a falha técnica!</strong>
-            </div>
+            <span class="text-[10px] text-amber-300 block pt-0.5 font-sans">Minuto 20: até a falha técnica</span>
           </div>
         </div>
 
-        <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800">
-          <span class="text-xs font-bold text-emerald-400 block mb-1">3. Trote Longo Z2</span>
-          <div class="text-sm font-bold text-emerald-300 font-mono">40 min contínuos</div>
-          <div class="text-xs text-slate-400 mt-1">Faixa: <strong>${z2Range}</strong></div>
+        <div class="card-subtle p-3">
+          <span class="text-[10px] text-emerald-400 uppercase font-mono block">3. Trote Longo (40 Min)</span>
+          <div class="text-xs font-bold text-white font-mono mt-0.5">40 min contínuos em Z2</div>
+          <span class="text-[10px] text-slate-400 font-mono mt-0.5 block">Faixa: ${z2Range}</span>
         </div>
       </div>
     `;
   } else if (fichaKey === 'NC') {
     const t = AppState.targets.NC;
     container.innerHTML = `
-      <div class="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
+      <div class="flex flex-wrap items-center justify-between border-b border-[#1e2638] pb-2.5 gap-2">
         <div>
-          <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider block">Transição de Corrida</span>
-          <h2 class="text-lg md:text-xl font-black text-white">Progressão para Não Corredores</h2>
+          <span class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wider block">Transição Aeróbica</span>
+          <h2 class="text-sm md:text-base font-bold text-white">EMOM Corrida / Caminhada</h2>
         </div>
-        <button onclick="launchWorkoutTimer('NC')" class="btn-pressable px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white flex items-center gap-2 shadow-lg shadow-emerald-950/50 transition">
-          <i data-lucide="play" class="w-4 h-4"></i> Iniciar Timer de Corrida
+        <button onclick="launchWorkoutTimer('NC')" class="btn-athletic px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white flex items-center gap-1.5">
+          <i data-lucide="play" class="w-3.5 h-3.5"></i> Iniciar Timer
         </button>
       </div>
 
-      <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-2 text-xs">
-        <div class="flex justify-between items-center">
-          <span class="text-slate-300 font-bold">Estrutura do Minuto:</span>
-          <span class="font-mono text-emerald-400 font-bold bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">
-            ${t.troteSec}" Trote / ${60 - t.troteSec}" Caminhada
-          </span>
-        </div>
-        <p class="text-slate-400 leading-relaxed text-[11px]">
-          Corra suavemente nos primeiros ${t.troteSec} segundos de cada minuto e caminhe no restante. O cronômetro apitará para você alternar!
-        </p>
+      <div class="card-subtle p-3 text-xs font-mono text-slate-300">
+        Cada minuto: <strong class="text-emerald-400">${t.troteSec}s de trote</strong> + <strong class="text-slate-400">${60 - t.troteSec}s de caminhada</strong>. No último minuto, trote até a falha.
       </div>
     `;
   }
@@ -613,10 +589,38 @@ function renderFichaCard(fichaKey) {
 function updateFichaAMod(newMod) {
   AppState.targets.A.barraMod = newMod;
   AppState.profile.barraMod = newMod;
-  AppState.profile.barraModLabel = getAssistanceLabel(newMod);
+  AppState.profile.barraModLabel = getAssistanceLabel(newMod, AppState.targets.A.barraExtraKg);
   saveToLocalStorage();
   checkCalibrationStatus();
   updateDesmameWidget();
+  renderFichaCard('A');
+}
+
+function updateBarraExtraKg(val) {
+  const kg = parseFloat(val) || 0;
+  AppState.targets.A.barraExtraKg = kg;
+  if (kg > 0) AppState.targets.A.barraMod = 'colete';
+  saveToLocalStorage();
+  checkCalibrationStatus();
+  renderFichaCard('A');
+}
+
+function setBType(type) {
+  AppState.targets.B.type = type;
+  saveToLocalStorage();
+  renderFichaCard('B');
+}
+
+function getAssistanceLabel(mod, extraKg = 0) {
+  if (extraKg > 0 || mod === 'colete') return `Colete (+${extraKg}kg)`;
+  const map = {
+    'livre': 'Barra Livre',
+    'verde': 'Superband Verde',
+    'roxa': 'Superband Roxa',
+    'vermelha': 'Superband Vermelha',
+    'excentrica': 'Excêntrica Lenta'
+  };
+  return map[mod] || 'Superband Roxa';
 }
 
 function updateDesmameWidget() {
@@ -629,48 +633,32 @@ function updateDesmameWidget() {
     const el = document.getElementById(`step-${s}`);
     if (!el) return;
     if (s === currentMod) {
-      el.className = "p-2.5 rounded-xl border border-amber-500/50 bg-amber-950/30 ring-1 ring-amber-500/40";
+      el.className = "p-2.5 rounded-lg border border-amber-500/50 bg-amber-950/20";
       const badge = el.querySelector('span');
-      if (badge) badge.className = "text-[10px] text-amber-400 block uppercase font-sans font-bold";
+      if (badge) badge.className = "text-[10px] text-amber-400 block uppercase font-mono font-bold";
     } else {
-      el.className = "p-2.5 rounded-xl border border-slate-800 bg-slate-950/60";
+      el.className = "p-2.5 rounded-lg border border-[#1e2638] bg-[#151a26]/50";
       const badge = el.querySelector('span');
-      if (badge) badge.className = "text-[10px] text-slate-500 block uppercase font-sans";
+      if (badge) badge.className = "text-[10px] text-slate-500 block uppercase font-mono";
     }
   });
 
-  if (pill) pill.innerText = `Fase Atual: ${getAssistanceLabel(currentMod)}`;
+  if (pill) pill.innerText = `Fase Atual: ${getAssistanceLabel(currentMod, AppState.targets.A.barraExtraKg)}`;
 
-  // Olhar último resultado de falha
   const lastA = AppState.history.find(h => h.ficha === 'A');
   if (hint && lastA && lastA.barraFalha !== undefined) {
     if (lastA.barraFalha >= 8 && currentMod !== 'livre') {
-      hint.innerHTML = `🏆 <strong>HORA DO DESMAME!</strong> No seu último treino você fez <strong>${lastA.barraFalha} repetições</strong> na série da falha! Seu corpo já adaptou: reduza o elástico para o próximo nível ou faça um teste de Barra Livre!`;
+      hint.innerHTML = `<strong>Atingiu ${lastA.barraFalha} repetições na última série.</strong> Recomenda-se reduzir a assistência para a próxima fase.`;
+    } else if (lastA.barraFalha >= 8 && currentMod === 'livre') {
+      hint.innerHTML = `<strong>Domínio consolidado em Barra Livre (${lastA.barraFalha} reps).</strong> Fase avançada: você já pode adicionar +2 kg de sobrecarga com colete/cinto!`;
     } else {
-      hint.innerHTML = `📊 <strong>Seu último minuto 39 (falha):</strong> você fez <strong>${lastA.barraFalha} reps</strong> com ${getAssistanceLabel(currentMod)}. Faltam <strong>${Math.max(1, 8 - lastA.barraFalha)} reps</strong> para o sistema liberar o próximo elástico!`;
+      hint.innerHTML = `Último registro de falha: <strong>${lastA.barraFalha} reps</strong> com ${getAssistanceLabel(currentMod, AppState.targets.A.barraExtraKg)}. Faltam <strong>${Math.max(1, 8 - lastA.barraFalha)} reps</strong> para avançar de fase.`;
     }
   }
 }
 
-function setBType(type) {
-  AppState.targets.B.type = type;
-  saveToLocalStorage();
-  renderFichaCard('B');
-}
-
-function getAssistanceLabel(mod) {
-  const map = {
-    'livre': 'Barra Livre',
-    'verde': 'Superband Verde (Forte)',
-    'roxa': 'Superband Roxa (Média)',
-    'vermelha': 'Superband Vermelha (Leve)',
-    'excentrica': 'Excêntrica Lenta'
-  };
-  return map[mod] || 'Superband Roxa';
-}
-
 // ============================================================
-// EMOM LIVE TIMER (COM WAKE LOCK & CONTROLE INTEGRADO)
+// EMOM LIVE TIMER
 // ============================================================
 
 function launchWorkoutTimer(fichaKey) {
@@ -699,19 +687,15 @@ function startOrPauseTimer() {
   const doneBtn = document.getElementById('btn-timer-done');
 
   if (AppState.timer.isRunning) {
-    // Pausar
     clearInterval(AppState.timer.intervalId);
     AppState.timer.isRunning = false;
-    releaseWakeLock(); // libera tela
-    playBtn.innerHTML = `<i data-lucide="play" class="w-6 h-6"></i> RETOMAR`;
+    releaseWakeLock();
+    playBtn.innerHTML = `<i data-lucide="play" class="w-4 h-4"></i> Retomar`;
     doneBtn.disabled = true;
   } else {
-    // Iniciar
     AppState.timer.isRunning = true;
-    requestWakeLock(); // ativa tela sempre acesa!
-    playBtn.innerHTML = `<i data-lucide="pause" class="w-6 h-6"></i> PAUSAR`;
-    playBtn.classList.replace('from-rose-600', 'from-amber-600');
-    playBtn.classList.replace('to-rose-700', 'to-amber-700');
+    requestWakeLock();
+    playBtn.innerHTML = `<i data-lucide="pause" class="w-4 h-4"></i> Pausar`;
     doneBtn.disabled = false;
 
     if (AppState.timer.secondsLeft === 60) {
@@ -770,15 +754,15 @@ function announceCurrentRound() {
   const isFinal = (f === 'A' && (min === 39 || min === 40)) || (f === 'C' && min === 20) || (f === 'NC' && min === AppState.timer.totalMinutes);
 
   if (isFinal) {
-    speakVoice("Atenção! Série até a falha. Dê o seu máximo!");
+    speakVoice("Série até a falha técnica.");
     return;
   }
 
   if (f === 'A') {
-    if (min % 2 !== 0) speakVoice(`Minuto ${min}: Barra Fixa. ${AppState.targets.A.barraReps} repetição.`);
-    else speakVoice(`Minuto ${min}: Abdominal. ${AppState.targets.A.abdReps} repetições.`);
+    if (min % 2 !== 0) speakVoice(`Minuto ${min}: Barra Fixa.`);
+    else speakVoice(`Minuto ${min}: Abdominal.`);
   } else if (f === 'C') {
-    speakVoice(`Minuto ${min}: Flexão. ${AppState.targets.C.flexaoReps} repetições.`);
+    speakVoice(`Minuto ${min}: Flexão.`);
   }
 }
 
@@ -801,9 +785,9 @@ function updateTimerUI() {
   const minsStr = String(Math.floor(sec / 60)).padStart(2, '0');
   const secsStr = String(sec % 60).padStart(2, '0');
   if (clockEl) clockEl.innerText = `${minsStr}:${secsStr}`;
-  if (roundEl) roundEl.innerText = `Minuto ${min} de ${total}`;
+  if (roundEl) roundEl.innerText = `${min} de ${total}`;
   if (progressBar) progressBar.style.width = `${(sec / 60) * 100}%`;
-  if (workoutTag) workoutTag.innerText = `FICHA ${f} • EMOM ${total} MIN`;
+  if (workoutTag) workoutTag.innerText = `FICHA ${f} • ${total} MIN`;
 
   const isFinal = (f === 'A' && (min === 39 || min === 40)) || (f === 'C' && min === 20) || (f === 'NC' && min === total);
   if (amrapBanner) {
@@ -811,22 +795,25 @@ function updateTimerUI() {
     else amrapBanner.classList.add('hidden');
   }
 
+  const extraBarra = AppState.targets.A.barraExtraKg > 0 ? ` (+${AppState.targets.A.barraExtraKg}kg)` : '';
+  const extraAbd = AppState.targets.A.abdExtraKg > 0 ? ` (+${AppState.targets.A.abdExtraKg}kg)` : '';
+
   if (f === 'A') {
     if (min % 2 !== 0) {
-      currentExEl.innerText = isFinal ? `Minuto ${min}: BARRA FIXA (FALHA 🔥)` : `Minuto ${min}: BARRA FIXA`;
+      currentExEl.innerText = isFinal ? `Minuto ${min}: Barra Fixa (Falha)` : `Minuto ${min}: Barra Fixa`;
       nextPreviewEl.innerText = `A seguir: Minuto ${min + 1} • Abdominal (${AppState.targets.A.abdReps} reps)`;
-      targetRepEl.innerText = `${AppState.timer.currentRepsDone} rep`;
-      assistTagEl.innerText = `(${getAssistanceLabel(AppState.targets.A.barraMod)})`;
+      targetRepEl.innerText = `${AppState.timer.currentRepsDone} rep${extraBarra}`;
+      assistTagEl.innerText = `(${getAssistanceLabel(AppState.targets.A.barraMod, AppState.targets.A.barraExtraKg)})`;
       assistTagEl.classList.remove('hidden');
     } else {
-      currentExEl.innerText = isFinal ? `Minuto ${min}: ABDOMINAL (FALHA 🔥)` : `Minuto ${min}: ABDOMINAL`;
-      nextPreviewEl.innerText = min < total ? `A seguir: Minuto ${min + 1} • Barra Fixa (${AppState.targets.A.barraReps} rep)` : `A seguir: Fim do EMOM & Corrida 20'`;
-      targetRepEl.innerText = `${AppState.timer.currentRepsDone} reps`;
+      currentExEl.innerText = isFinal ? `Minuto ${min}: Abdominal (Falha)` : `Minuto ${min}: Abdominal`;
+      nextPreviewEl.innerText = min < total ? `A seguir: Minuto ${min + 1} • Barra Fixa (${AppState.targets.A.barraReps} rep)` : `A seguir: Corrida 20 min`;
+      targetRepEl.innerText = `${AppState.timer.currentRepsDone} reps${extraAbd}`;
       assistTagEl.classList.add('hidden');
     }
   } else if (f === 'C') {
-    currentExEl.innerText = isFinal ? `Minuto ${min}: FLEXÃO (FALHA 🔥)` : `Minuto ${min}: FLEXÃO DE BRAÇO`;
-    nextPreviewEl.innerText = min < total ? `A seguir: Minuto ${min + 1} • Flexão (${AppState.targets.C.flexaoReps} reps)` : `A seguir: Corrida 40' Z2`;
+    currentExEl.innerText = isFinal ? `Minuto ${min}: Flexão (Falha)` : `Minuto ${min}: Flexão de Braço`;
+    nextPreviewEl.innerText = min < total ? `A seguir: Minuto ${min + 1} • Flexão (${AppState.targets.C.flexaoReps} reps)` : `A seguir: Corrida 40 min`;
     targetRepEl.innerText = `${AppState.timer.currentRepsDone} reps`;
     assistTagEl.classList.add('hidden');
   }
@@ -844,12 +831,12 @@ function markSeriesCompleted() {
   const btn = document.getElementById('btn-timer-done');
   if (btn) {
     btn.classList.add('bg-emerald-400');
-    setTimeout(() => btn.classList.remove('bg-emerald-400'), 250);
+    setTimeout(() => btn.classList.remove('bg-emerald-400'), 200);
   }
 }
 
 function resetTimer() {
-  if (confirm("Deseja reiniciar este treino?")) {
+  if (confirm("Reiniciar a sessão?")) {
     clearInterval(AppState.timer.intervalId);
     releaseWakeLock();
     AppState.timer.isRunning = false;
@@ -858,11 +845,7 @@ function resetTimer() {
     AppState.timer.historyReps = [];
 
     const playBtn = document.getElementById('btn-timer-play');
-    if (playBtn) {
-      playBtn.innerHTML = `<i data-lucide="play" class="w-6 h-6"></i> INICIAR TREINO`;
-      playBtn.classList.replace('from-amber-600', 'from-rose-600');
-      playBtn.classList.replace('to-amber-700', 'to-rose-700');
-    }
+    if (playBtn) playBtn.innerHTML = `<i data-lucide="play" class="w-4 h-4"></i> Iniciar Treino`;
     setupMinuteTarget();
     updateTimerUI();
     lucide.createIcons();
@@ -874,8 +857,7 @@ function finishWorkoutTimer() {
   releaseWakeLock();
   AppState.timer.isRunning = false;
 
-  playBeep(1400, 0.5);
-  speakVoice("Parabéns! Bloco EMOM concluído com sucesso!");
+  playBeep(1400, 0.4);
 
   const f = AppState.currentFicha;
   let totalBarra = 0, totalAbd = 0, totalFlexao = 0;
@@ -894,7 +876,7 @@ function finishWorkoutTimer() {
     flexaoFalha = AppState.timer.historyReps[19] || AppState.targets.C.flexaoReps;
   }
 
-  let corridaDist = prompt(`Bloco EMOM Concluído!\nVolume: ${f === 'A' ? `${totalBarra} Barras, ${totalAbd} Abdominais` : `${totalFlexao} Flexões`}\n\nSe fez a corrida contínua pós-treino, digite a distância em km:`, "2.5");
+  let corridaDist = prompt(`Bloco Concluído.\nVolume: ${f === 'A' ? `${totalBarra} Barras, ${totalAbd} Abdominais` : `${totalFlexao} Flexões`}\n\nDistância da corrida em km:`, "2.5");
   if (corridaDist === null) corridaDist = "0";
 
   const suggestion = calculateProgression(f, { barraFalha, abdFalha, flexaoFalha });
@@ -911,6 +893,7 @@ function finishWorkoutTimer() {
     abdFalha,
     flexaoFalha,
     barraMod: AppState.targets.A.barraMod,
+    barraExtraKg: AppState.targets.A.barraExtraKg || 0,
     distanceKm: parseFloat(corridaDist) || 0,
     suggestion: suggestion.text
   };
@@ -928,7 +911,8 @@ function finishWorkoutTimer() {
   }
 
   saveToLocalStorage();
-  alert(`Treino Salvo com Sucesso no Diário!\n\n${suggestion.text}`);
+  updateDesmameWidget();
+  alert(`Sessão Registrada.\n\n${suggestion.text}`);
   switchTab('historico');
 }
 
@@ -942,15 +926,17 @@ function calculateProgression(ficha, results) {
     let newTargets = {};
 
     if (falha >= 8 && curMod !== 'livre') {
-      text = `🔥 Falha incrível (${falha} reps)! Sugestão: Reduza a assistência para o próximo elástico ou teste Barra Livre!`;
+      text = `Série de falha: ${falha} repetições. Adaptação atingida: reduza o elástico no próximo treino.`;
       if (curMod === 'verde') newTargets.barraMod = 'roxa';
       else if (curMod === 'roxa') newTargets.barraMod = 'vermelha';
       else if (curMod === 'vermelha') newTargets.barraMod = 'livre';
+    } else if (falha >= 8 && curMod === 'livre') {
+      text = `Domínio em barra livre (${falha} reps). Fase de sobrecarga: adicione +2 kg com colete/cinto.`;
     } else if (falha >= curBarra * 3) {
-      text = `⚡ Excelente adaptação! Aumente para ${curBarra + 1} reps por minuto.`;
+      text = `Reserva submáxima favorável: aumentar para ${curBarra + 1} reps/minuto.`;
       newTargets.barraReps = curBarra + 1;
     } else {
-      text = `💪 Volume consolidado! Mantenha ${curBarra} rep (${getAssistanceLabel(curMod)}) para o próximo treino.`;
+      text = `Volume consolidado. Manter ${curBarra} rep (${getAssistanceLabel(curMod, AppState.targets.A.barraExtraKg)}).`;
     }
 
     return { text, newTargets };
@@ -962,20 +948,20 @@ function calculateProgression(ficha, results) {
     let newTargets = {};
 
     if (falha >= curFlex * 2) {
-      text = `🔥 Fez ${falha} flexões na última série! No próximo treino, aumente para ${curFlex + 1} reps por minuto.`;
+      text = `Falha atingiu ${falha} flexões. Aumentar para ${curFlex + 1} reps/minuto.`;
       newTargets.flexaoReps = curFlex + 1;
     } else {
-      text = `💪 Mantenha ${curFlex} reps/min até bater pelo menos ${curFlex * 2} na série até a falha.`;
+      text = `Manter meta de ${curFlex} reps/minuto.`;
     }
 
     return { text, newTargets };
   }
 
-  return { text: "Treino registrado com sucesso!", newTargets: null };
+  return { text: "Treino registrado.", newTargets: null };
 }
 
 // ============================================================
-// GRÁFICOS VISUAIS (CHART.JS)
+// GRÁFICOS VISUAIS (CHART.JS - TEMA SÓBRIO)
 // ============================================================
 
 let chartVolume = null;
@@ -991,20 +977,20 @@ function initCharts() {
       data: {
         labels: [],
         datasets: [
-          { label: 'Barras', data: [], backgroundColor: '#f43f5e' },
-          { label: 'Flexões', data: [], backgroundColor: '#fbbf24' },
-          { label: 'Abdominais', data: [], backgroundColor: '#38bdf8' }
+          { label: 'Barras', data: [], backgroundColor: '#e11d48' },
+          { label: 'Flexões', data: [], backgroundColor: '#f59e0b' },
+          { label: 'Abdominais', data: [], backgroundColor: '#0284c7' }
         ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
-          x: { grid: { color: '#1f2937' }, ticks: { color: '#9ca3af', font: { size: 10 } } },
-          y: { grid: { color: '#1f2937' }, ticks: { color: '#9ca3af' } }
+          x: { grid: { color: '#1e2638' }, ticks: { color: '#64748b', font: { size: 9, family: 'monospace' } } },
+          y: { grid: { color: '#1e2638' }, ticks: { color: '#64748b', font: { family: 'monospace' } } }
         },
         plugins: {
-          legend: { labels: { color: '#e5e7eb', font: { size: 11 } } }
+          legend: { labels: { color: '#94a3b8', font: { size: 10 } } }
         }
       }
     });
@@ -1017,12 +1003,12 @@ function initCharts() {
         labels: [],
         datasets: [
           {
-            label: 'Distância (km)',
+            label: 'Quilômetros',
             data: [],
             borderColor: '#10b981',
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            backgroundColor: 'rgba(16, 185, 129, 0.08)',
             fill: true,
-            tension: 0.3
+            tension: 0.2
           }
         ]
       },
@@ -1030,11 +1016,11 @@ function initCharts() {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
-          x: { grid: { color: '#1f2937' }, ticks: { color: '#9ca3af', font: { size: 10 } } },
-          y: { grid: { color: '#1f2937' }, ticks: { color: '#9ca3af' } }
+          x: { grid: { color: '#1e2638' }, ticks: { color: '#64748b', font: { size: 9, family: 'monospace' } } },
+          y: { grid: { color: '#1e2638' }, ticks: { color: '#64748b', font: { family: 'monospace' } } }
         },
         plugins: {
-          legend: { labels: { color: '#e5e7eb', font: { size: 11 } } }
+          legend: { labels: { color: '#94a3b8', font: { size: 10 } } }
         }
       }
     });
@@ -1060,7 +1046,7 @@ function updateCharts() {
 }
 
 // ============================================================
-// SINCRONIZAÇÃO INSTANTÂNEA VIA URL / WHATSAPP
+// SINCRONIZAÇÃO
 // ============================================================
 
 function generateSyncPayload() {
@@ -1077,7 +1063,7 @@ function generateSyncPayload() {
 function shareDataToWhatsApp() {
   const payload = generateSyncPayload();
   const url = `${window.location.origin}${window.location.pathname}#sync=${payload}`;
-  const msg = encodeURIComponent(`🥋 Meus Treinos TAF Protocolo Soviético:\nClique no link abaixo para sincronizar todos os seus dados no aparelho:\n\n${url}`);
+  const msg = encodeURIComponent(`Dados TAF Soviético:\n${url}`);
   window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
 }
 
@@ -1085,7 +1071,7 @@ function copySyncLink() {
   const payload = generateSyncPayload();
   const url = `${window.location.origin}${window.location.pathname}#sync=${payload}`;
   navigator.clipboard.writeText(url).then(() => {
-    alert("Link de Sincronização copiado!\nCole no WhatsApp ou envie para você mesmo para abrir no celular e sincronizar na hora.");
+    alert("Link de sincronização copiado.");
   });
 }
 
@@ -1104,15 +1090,15 @@ function checkUrlSyncHash() {
 
       saveToLocalStorage();
       history.replaceState(null, null, ' ');
-      alert("🎉 Treinos e configurações sincronizados com sucesso a partir do link!");
+      alert("Dados sincronizados com sucesso.");
     } catch (e) {
-      console.error("Erro ao importar do hash de sincronização:", e);
+      console.error("Erro ao sincronizar do hash:", e);
     }
   }
 }
 
 // ============================================================
-// MOTOR DE ÁUDIO & VOZ
+// ÁUDIO & VOZ
 // ============================================================
 
 let audioCtx = null;
@@ -1130,7 +1116,7 @@ function playBeep(freq = 800, duration = 0.1) {
     const gain = ctx.createGain();
     osc.type = 'sine';
     osc.frequency.setValueAtTime(freq, ctx.currentTime);
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
     osc.connect(gain);
     gain.connect(ctx.destination);
@@ -1155,8 +1141,8 @@ function toggleSound() {
   const btn = document.getElementById('btn-sound');
   if (btn) {
     btn.innerHTML = AppState.timer.soundEnabled ? 
-      `<i data-lucide="volume-2" class="w-4 h-4 text-rose-400"></i> Som: Ligado` :
-      `<i data-lucide="volume-x" class="w-4 h-4 text-slate-500"></i> Som: Mudo`;
+      `<i data-lucide="volume-2" class="w-4 h-4 text-rose-400"></i>` :
+      `<i data-lucide="volume-x" class="w-4 h-4 text-slate-500"></i>`;
     lucide.createIcons();
   }
 }
@@ -1166,8 +1152,8 @@ function toggleVoice() {
   const btn = document.getElementById('btn-voice');
   if (btn) {
     btn.innerHTML = AppState.timer.voiceEnabled ? 
-      `<i data-lucide="mic" class="w-4 h-4 text-emerald-400"></i> Voz: Ligada` :
-      `<i data-lucide="mic-off" class="w-4 h-4 text-slate-500"></i> Voz: Desligada`;
+      `<i data-lucide="mic" class="w-4 h-4 text-emerald-400"></i>` :
+      `<i data-lucide="mic-off" class="w-4 h-4 text-slate-500"></i>`;
     lucide.createIcons();
   }
 }
@@ -1187,11 +1173,11 @@ function calculateHeartZones() {
   const reserve = fcMax - hrRest;
 
   const zones = [
-    { name: 'Z1', label: 'Recuperação', minPct: 0.50, maxPct: 0.60, colorClass: 'border-blue-500/40 bg-blue-950/20 text-blue-300' },
-    { name: 'Z2', label: 'Base Aeróbica TAF', minPct: 0.60, maxPct: 0.70, colorClass: 'border-emerald-500/50 bg-emerald-950/30 text-emerald-300 ring-1 ring-emerald-500/40' },
-    { name: 'Z3', label: 'Ritmo / Tempo', minPct: 0.70, maxPct: 0.80, colorClass: 'border-amber-500/40 bg-amber-950/20 text-amber-300' },
-    { name: 'Z4', label: 'Limiar Anaeróbico', minPct: 0.80, maxPct: 0.90, colorClass: 'border-orange-500/40 bg-orange-950/20 text-orange-300' },
-    { name: 'Z5', label: 'Potência / VO2', minPct: 0.90, maxPct: 1.00, colorClass: 'border-rose-500/40 bg-rose-950/20 text-rose-300' },
+    { name: 'Z1', label: 'Recuperação', minPct: 0.50, maxPct: 0.60, colorClass: 'border-[#1e2638] bg-[#151a26] text-blue-300' },
+    { name: 'Z2', label: 'Base Aeróbica', minPct: 0.60, maxPct: 0.70, colorClass: 'border-emerald-500/50 bg-emerald-950/20 text-emerald-400' },
+    { name: 'Z3', label: 'Ritmo Limiar', minPct: 0.70, maxPct: 0.80, colorClass: 'border-[#1e2638] bg-[#151a26] text-amber-300' },
+    { name: 'Z4', label: 'Tiro Longo', minPct: 0.80, maxPct: 0.90, colorClass: 'border-[#1e2638] bg-[#151a26] text-orange-300' },
+    { name: 'Z5', label: 'VO2 Máx', minPct: 0.90, maxPct: 1.00, colorClass: 'border-[#1e2638] bg-[#151a26] text-rose-400' },
   ];
 
   const zoneResults = zones.map(z => {
@@ -1201,15 +1187,15 @@ function calculateHeartZones() {
   });
 
   const fcMaxDisplay = document.getElementById('fc-max-calculated');
-  if (fcMaxDisplay) fcMaxDisplay.innerText = `${fcMax.toFixed(1)} bpm`;
+  if (fcMaxDisplay) fcMaxDisplay.innerText = `${fcMax.toFixed(0)} bpm`;
 
   const container = document.getElementById('zones-cards-container');
   if (container) {
     container.innerHTML = zoneResults.map(z => `
-      <div class="p-2.5 rounded-xl border ${z.colorClass}">
-        <div class="text-[10px] font-bold uppercase tracking-wider">${z.name} (${Math.round(z.minPct * 100)}-${Math.round(z.maxPct * 100)}%)</div>
-        <div class="text-sm font-black font-mono my-0.5">${z.minBpm} - ${z.maxBpm} <span class="text-[10px] font-normal">bpm</span></div>
-        <div class="text-[10px] text-slate-400">${z.label}</div>
+      <div class="p-2 rounded border ${z.colorClass}">
+        <span class="text-[9px] font-bold uppercase block">${z.name}</span>
+        <div class="text-xs font-bold font-mono my-0.5">${z.minBpm}-${z.maxBpm} bpm</div>
+        <span class="text-[9px] text-slate-400 block">${z.label}</span>
       </div>
     `).join('');
   }
@@ -1220,21 +1206,14 @@ function calculateHeartZones() {
 
 function copyGarminZones() {
   const zones = calculateHeartZones();
-  const text = `ZONAS DE FREQUÊNCIA CARDÍACA (TANAKA + KARVONEN) PARA O GARMIN:
-FC Máxima: ${208 - (0.7 * AppState.profile.age)} bpm | FC Repouso: ${AppState.profile.hrRest} bpm
-Z1: ${zones[0].minBpm} a ${zones[0].maxBpm} bpm
-Z2: ${zones[1].minBpm} a ${zones[1].maxBpm} bpm (Base Aeróbica TAF)
-Z3: ${zones[2].minBpm} a ${zones[2].maxBpm} bpm (Ritmo TAF)
-Z4: ${zones[3].minBpm} a ${zones[3].maxBpm} bpm (Tiros Longos)
-Z5: ${zones[4].minBpm} a ${zones[4].maxBpm} bpm (Tiros Curtos)`;
-
+  const text = `Zonas Garmin (Tanaka+Karvonen):\nZ1: ${zones[0].minBpm}-${zones[0].maxBpm}\nZ2: ${zones[1].minBpm}-${zones[1].maxBpm}\nZ3: ${zones[2].minBpm}-${zones[2].maxBpm}\nZ4: ${zones[3].minBpm}-${zones[3].maxBpm}\nZ5: ${zones[4].minBpm}-${zones[4].maxBpm}`;
   navigator.clipboard.writeText(text).then(() => {
-    alert("Zonas copiadas! Use para configurar o seu Garmin Connect.");
+    alert("Zonas copiadas para a área de transferência.");
   });
 }
 
 // ============================================================
-// ASSESSORIA DE CORRIDA & PACE
+// ASSESSORIA & PACE
 // ============================================================
 
 function calcPace() {
@@ -1276,30 +1255,27 @@ function saveAssessoriaRun(e) {
     distanceKm: dist,
     duration: time,
     pace,
-    suggestion: `Treino da Assessoria (${type}): Pace ${pace}`
+    suggestion: `Assessoria (${type}): Pace ${pace}`
   };
 
   AppState.history.unshift(record);
   saveToLocalStorage();
   renderHistoryTable();
-  alert("Treino da assessoria registrado!");
+  alert("Sessão registrada.");
   document.getElementById('assessoria-form').reset();
 }
 
 // ============================================================
-// TABELA DE HISTÓRICO & EXPORTAÇÃO
+// HISTÓRICO
 // ============================================================
 
 function renderHistoryTable() {
   const tbody = document.getElementById('history-table-body');
-  const filter = document.getElementById('filter-ficha')?.value || 'ALL';
   if (!tbody) return;
 
-  let items = AppState.history;
-  if (filter !== 'ALL') items = items.filter(h => h.ficha === filter);
-
+  const items = AppState.history;
   if (items.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-500">Nenhum treino registrado ainda.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-slate-500 font-sans">Nenhum treino registrado.</td></tr>`;
     updateStatsCounters();
     return;
   }
@@ -1309,43 +1285,43 @@ function renderHistoryTable() {
     let falha = "-";
 
     if (h.ficha === 'A') {
-      details = `<strong class="text-rose-400">${h.totalBarra || 0}</strong> barras (${getAssistanceLabel(h.barraMod)}), <strong class="text-sky-400">${h.totalAbd || 0}</strong> abd`;
-      falha = `Barra: ${h.barraFalha || '-'} | Abd: ${h.abdFalha || '-'}`;
+      const extra = h.barraExtraKg > 0 ? ` (+${h.barraExtraKg}kg)` : '';
+      details = `${h.totalBarra || 0} barras${extra}, ${h.totalAbd || 0} abd`;
+      falha = `${h.barraFalha || '-'}/${h.abdFalha || '-'}`;
     } else if (h.ficha === 'B') {
-      details = `Tiros Intervalados (${h.bType || 'B1'})`;
-      falha = `Tiros`;
+      details = `Intervalado (${h.bType || 'B1'})`;
+      falha = `-`;
     } else if (h.ficha === 'C') {
-      details = `<strong class="text-amber-400">${h.totalFlexao || 0}</strong> flexões`;
-      falha = `Flexão: ${h.flexaoFalha || '-'}`;
+      details = `${h.totalFlexao || 0} flexões`;
+      falha = `${h.flexaoFalha || '-'}`;
     } else if (h.ficha === 'ASS') {
-      details = `Assessoria (${h.assType || 'Corrida'}, Pace: ${h.pace || '-'})`;
+      details = `Assessoria (${h.assType || 'Corrida'}, ${h.pace || '-'})`;
       falha = h.duration || '-';
     }
 
     return `
-      <tr class="hover:bg-slate-900/60 transition">
-        <td class="py-2.5 px-3 text-slate-300">${h.date}</td>
-        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${getFichaBadgeClass(h.ficha)}">${h.ficha === 'ASS' ? 'ASSESSORIA' : `FICHA ${h.ficha}`}</span></td>
-        <td class="py-2.5 px-3 text-slate-200">${details}</td>
-        <td class="py-2.5 px-3 text-rose-300 font-semibold">${falha}</td>
-        <td class="py-2.5 px-3 text-emerald-400 font-bold">${h.distanceKm > 0 ? `${h.distanceKm.toFixed(2)} km` : '-'}</td>
-        <td class="py-2.5 px-3 text-slate-400 text-[11px] truncate max-w-xs" title="${h.suggestion || ''}">${h.suggestion || '-'}</td>
-        <td class="py-2.5 px-3 text-right">
-          <button onclick="deleteHistoryItem(${h.id})" class="text-slate-500 hover:text-rose-400 text-xs"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+      <tr class="hover:bg-[#151a26]/40 transition">
+        <td class="py-2 px-2.5 text-slate-300">${h.date}</td>
+        <td class="py-2 px-2.5"><span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${getFichaBadgeClass(h.ficha)}">${h.ficha === 'ASS' ? 'ASSESSORIA' : `FICHA ${h.ficha}`}</span></td>
+        <td class="py-2 px-2.5 text-white">${details}</td>
+        <td class="py-2 px-2.5 text-rose-400 font-semibold">${falha}</td>
+        <td class="py-2 px-2.5 text-emerald-400 font-bold">${h.distanceKm > 0 ? `${h.distanceKm.toFixed(2)} km` : '-'}</td>
+        <td class="py-2 px-2.5 text-slate-400 text-[11px] truncate max-w-xs font-sans">${h.suggestion || '-'}</td>
+        <td class="py-2 px-2.5 text-right font-sans">
+          <button onclick="deleteHistoryItem(${h.id})" class="text-slate-500 hover:text-rose-400 text-xs">Excluir</button>
         </td>
       </tr>
     `;
   }).join('');
 
   updateStatsCounters();
-  if (window.lucide) lucide.createIcons();
 }
 
 function getFichaBadgeClass(ficha) {
-  if (ficha === 'A') return 'bg-rose-950 text-rose-300 border border-rose-800';
-  if (ficha === 'B') return 'bg-amber-950 text-amber-300 border border-amber-800';
-  if (ficha === 'C') return 'bg-sky-950 text-sky-300 border border-sky-800';
-  if (ficha === 'ASS') return 'bg-emerald-950 text-emerald-300 border border-emerald-800';
+  if (ficha === 'A') return 'bg-rose-950/60 text-rose-300 border border-rose-900';
+  if (ficha === 'B') return 'bg-amber-950/60 text-amber-300 border border-amber-900';
+  if (ficha === 'C') return 'bg-sky-950/60 text-sky-300 border border-sky-900';
+  if (ficha === 'ASS') return 'bg-emerald-950/60 text-emerald-300 border border-emerald-900';
   return 'bg-slate-800 text-slate-300';
 }
 
@@ -1370,7 +1346,7 @@ function updateStatsCounters() {
 }
 
 function deleteHistoryItem(id) {
-  if (confirm("Deseja apagar este treino?")) {
+  if (confirm("Apagar treino?")) {
     AppState.history = AppState.history.filter(h => h.id !== id);
     saveToLocalStorage();
     renderHistoryTable();
@@ -1379,11 +1355,11 @@ function deleteHistoryItem(id) {
 
 function exportHistoryCSV() {
   if (AppState.history.length === 0) {
-    alert("Nenhum histórico para exportar!");
+    alert("Nenhum histórico para exportar.");
     return;
   }
 
-  let csvContent = "\uFEFFData;Hora;Ficha;Barras;Flexões;Abdominais;Distância (km);Falha / Detalhes;Sugestão\n";
+  let csvContent = "\uFEFFData;Hora;Ficha;Barras;Flexões;Abdominais;Distância (km);Falha;Sugestão\n";
   AppState.history.forEach(h => {
     csvContent += `"${h.date}";"${h.time}";"${h.ficha}";"${h.totalBarra || 0}";"${h.totalFlexao || 0}";"${h.totalAbd || 0}";"${(h.distanceKm || 0).toFixed(2)}";"${h.barraFalha || h.flexaoFalha || ''}";"${(h.suggestion || '').replace(/"/g, '""')}"\n`;
   });
@@ -1397,7 +1373,7 @@ function exportHistoryCSV() {
 }
 
 // ============================================================
-// BACKUP & RESTAURAÇÃO DE DADOS
+// BACKUP
 // ============================================================
 
 function downloadBackupJSON() {
@@ -1436,26 +1412,27 @@ function restoreBackupJSON(event) {
       checkCalibrationStatus();
       calculateHeartZones();
       renderFichaCard('A');
+      updateDesmameWidget();
       renderHistoryTable();
       renderSimuladosTable();
       calculateEditalScore();
-      alert("Backup restaurado com sucesso!");
+      alert("Backup restaurado.");
     } catch (err) {
-      alert("Arquivo de backup inválido.");
+      alert("Arquivo inválido.");
     }
   };
   reader.readAsText(file);
 }
 
 function clearAllData() {
-  if (confirm("ATENÇÃO: Tem certeza que deseja apagar todos os treinos e dados para começar 100% do zero?")) {
+  if (confirm("Tem certeza que deseja apagar os registros locais?")) {
     localStorage.removeItem('TAF_SOVIETICO_DATA');
     location.reload();
   }
 }
 
 // ============================================================
-// MODAL DE REGISTRO MANUAL
+// MODAL MANUAL
 // ============================================================
 
 function openManualModal(fichaKey) {
@@ -1464,63 +1441,63 @@ function openManualModal(fichaKey) {
   const title = document.getElementById('manual-modal-title');
   const t = AppState.targets[fichaKey];
 
-  title.innerText = `Registrar Ficha ${fichaKey} Manualmente`;
+  title.innerText = `Registrar Ficha ${fichaKey}`;
 
   if (fichaKey === 'A') {
     container.innerHTML = `
-      <div class="grid grid-cols-2 gap-3 text-xs">
+      <div class="grid grid-cols-2 gap-2 text-xs font-mono">
         <div>
-          <label class="text-slate-400 block mb-1">Reps/Min Barra</label>
-          <input type="number" id="man-barra-base" value="${t.barraReps}" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white font-mono">
+          <label class="text-slate-400 font-sans block mb-0.5">Reps/Min Barra</label>
+          <input type="number" id="man-barra-base" value="${t.barraReps}" class="w-full bg-[#151a26] border border-[#1e2638] rounded p-1.5 text-white">
         </div>
         <div>
-          <label class="text-slate-400 block mb-1">Última Série Barra (Falha)</label>
-          <input type="number" id="man-barra-falha" placeholder="ex: 4" required class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white font-mono">
+          <label class="text-slate-400 font-sans block mb-0.5">Última Série Barra (Falha)</label>
+          <input type="number" id="man-barra-falha" placeholder="ex: 4" required class="w-full bg-[#151a26] border border-[#1e2638] rounded p-1.5 text-white">
         </div>
         <div>
-          <label class="text-slate-400 block mb-1">Reps/Min Abdominal</label>
-          <input type="number" id="man-abd-base" value="${t.abdReps}" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white font-mono">
+          <label class="text-slate-400 font-sans block mb-0.5">Reps/Min Abdominal</label>
+          <input type="number" id="man-abd-base" value="${t.abdReps}" class="w-full bg-[#151a26] border border-[#1e2638] rounded p-1.5 text-white">
         </div>
         <div>
-          <label class="text-slate-400 block mb-1">Última Série Abd (Falha)</label>
-          <input type="number" id="man-abd-falha" placeholder="ex: 15" required class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white font-mono">
+          <label class="text-slate-400 font-sans block mb-0.5">Última Série Abd (Falha)</label>
+          <input type="number" id="man-abd-falha" placeholder="ex: 12" required class="w-full bg-[#151a26] border border-[#1e2638] rounded p-1.5 text-white">
         </div>
         <div class="col-span-2">
-          <label class="text-slate-400 block mb-1">Distância Corrida 20' (km)</label>
-          <input type="number" step="0.01" id="man-dist" placeholder="ex: 2.80" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white font-mono">
+          <label class="text-slate-400 font-sans block mb-0.5">Distância Corrida 20' (km)</label>
+          <input type="number" step="0.01" id="man-dist" placeholder="ex: 2.80" class="w-full bg-[#151a26] border border-[#1e2638] rounded p-1.5 text-white">
         </div>
       </div>
     `;
   } else if (fichaKey === 'B') {
     container.innerHTML = `
-      <div class="space-y-3 text-xs">
+      <div class="space-y-2 text-xs font-mono">
         <div>
-          <label class="text-slate-400 block mb-1">Tipo de Tiro</label>
-          <select id="man-b-type" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white">
-            <option value="B1">B.1 - Tiro Curto (20x 30"/90")</option>
-            <option value="B2">B.2 - Tiro Longo (8x 2'/3')</option>
+          <label class="text-slate-400 font-sans block mb-0.5">Tipo</label>
+          <select id="man-b-type" class="w-full bg-[#151a26] border border-[#1e2638] rounded p-1.5 text-white">
+            <option value="B1">B.1 Curto (20x 30"/90")</option>
+            <option value="B2">B.2 Longo (8x 2'/3')</option>
           </select>
         </div>
         <div>
-          <label class="text-slate-400 block mb-1">Distância Total (km)</label>
-          <input type="number" step="0.01" id="man-dist" placeholder="ex: 6.20" required class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white font-mono">
+          <label class="text-slate-400 font-sans block mb-0.5">Distância Total (km)</label>
+          <input type="number" step="0.01" id="man-dist" placeholder="ex: 6.0" required class="w-full bg-[#151a26] border border-[#1e2638] rounded p-1.5 text-white">
         </div>
       </div>
     `;
   } else if (fichaKey === 'C') {
     container.innerHTML = `
-      <div class="grid grid-cols-2 gap-3 text-xs">
+      <div class="grid grid-cols-2 gap-2 text-xs font-mono">
         <div>
-          <label class="text-slate-400 block mb-1">Reps/Min Flexão</label>
-          <input type="number" id="man-flex-base" value="${t.flexaoReps}" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white font-mono">
+          <label class="text-slate-400 font-sans block mb-0.5">Reps/Min Flexão</label>
+          <input type="number" id="man-flex-base" value="${t.flexaoReps}" class="w-full bg-[#151a26] border border-[#1e2638] rounded p-1.5 text-white">
         </div>
         <div>
-          <label class="text-slate-400 block mb-1">Última Série Flexão (Falha)</label>
-          <input type="number" id="man-flex-falha" placeholder="ex: 8" required class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white font-mono">
+          <label class="text-slate-400 font-sans block mb-0.5">Última Série Flexão (Falha)</label>
+          <input type="number" id="man-flex-falha" placeholder="ex: 8" required class="w-full bg-[#151a26] border border-[#1e2638] rounded p-1.5 text-white">
         </div>
         <div class="col-span-2">
-          <label class="text-slate-400 block mb-1">Distância Corrida 40' Z2 (km)</label>
-          <input type="number" step="0.01" id="man-dist" placeholder="ex: 5.10" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white font-mono">
+          <label class="text-slate-400 font-sans block mb-0.5">Distância Corrida 40' (km)</label>
+          <input type="number" step="0.01" id="man-dist" placeholder="ex: 5.10" class="w-full bg-[#151a26] border border-[#1e2638] rounded p-1.5 text-white">
         </div>
       </div>
     `;
@@ -1556,12 +1533,13 @@ function submitManualWorkout(e) {
     record.barraFalha = falhaBarra;
     record.abdFalha = falhaAbd;
     record.barraMod = AppState.targets.A.barraMod;
+    record.barraExtraKg = AppState.targets.A.barraExtraKg || 0;
 
     const prog = calculateProgression('A', { barraFalha: falhaBarra, abdFalha: falhaAbd });
     record.suggestion = prog.text;
   } else if (f === 'B') {
     record.bType = document.getElementById('man-b-type').value;
-    record.suggestion = "Intervalado cumprido com sucesso!";
+    record.suggestion = "Sessão concluída.";
   } else if (f === 'C') {
     const baseFlex = parseInt(document.getElementById('man-flex-base').value) || 3;
     const falhaFlex = parseInt(document.getElementById('man-flex-falha').value) || 3;
@@ -1575,9 +1553,10 @@ function submitManualWorkout(e) {
 
   AppState.history.unshift(record);
   saveToLocalStorage();
+  updateDesmameWidget();
   closeManualModal();
   renderHistoryTable();
-  alert("Treino registrado no histórico!");
+  alert("Sessão salva.");
 }
 
 function setupKeyboardShortcuts() {
