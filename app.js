@@ -1829,6 +1829,11 @@ function submitManualWorkout(e) {
 
     const prog = calculateProgression('A', { barraFalha: falhaBarra, abdFalha: falhaAbd });
     record.suggestion = prog.text;
+    if (prog.newTargets) {
+      if (prog.newTargets.barraReps) AppState.targets.A.barraReps = prog.newTargets.barraReps;
+      if (prog.newTargets.barraMod) AppState.targets.A.barraMod = prog.newTargets.barraMod;
+      if (prog.newTargets.abdReps) AppState.targets.A.abdReps = prog.newTargets.abdReps;
+    }
   } else if (f === 'B') {
     record.bType = document.getElementById('man-b-type').value;
     record.suggestion = "Sessão concluída.";
@@ -1841,6 +1846,9 @@ function submitManualWorkout(e) {
 
     const prog = calculateProgression('C', { flexaoFalha: falhaFlex });
     record.suggestion = prog.text;
+    if (prog.newTargets && prog.newTargets.flexaoReps) {
+      AppState.targets.C.flexaoReps = prog.newTargets.flexaoReps;
+    }
   }
 
   AppState.history.unshift(record);
