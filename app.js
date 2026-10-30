@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. Calcular Zonas e Atualizar Telas
   calculateHeartZones();
   renderFichaCard('A');
+  updateDesmameWidget();
   renderHistoryTable();
   renderSimuladosTable();
   calculateEditalScore();
@@ -601,6 +602,40 @@ function updateFichaAMod(newMod) {
   AppState.profile.barraModLabel = getAssistanceLabel(newMod);
   saveToLocalStorage();
   checkCalibrationStatus();
+  updateDesmameWidget();
+}
+
+function updateDesmameWidget() {
+  const currentMod = AppState.targets.A.barraMod;
+  const pill = document.getElementById('desmame-status-pill');
+  const hint = document.getElementById('desmame-hint-text');
+
+  const steps = ['verde', 'roxa', 'vermelha', 'livre'];
+  steps.forEach(s => {
+    const el = document.getElementById(`step-${s}`);
+    if (!el) return;
+    if (s === currentMod) {
+      el.className = "p-2.5 rounded-xl border border-amber-500/50 bg-amber-950/30 ring-1 ring-amber-500/40";
+      const badge = el.querySelector('span');
+      if (badge) badge.className = "text-[10px] text-amber-400 block uppercase font-sans font-bold";
+    } else {
+      el.className = "p-2.5 rounded-xl border border-slate-800 bg-slate-950/60";
+      const badge = el.querySelector('span');
+      if (badge) badge.className = "text-[10px] text-slate-500 block uppercase font-sans";
+    }
+  });
+
+  if (pill) pill.innerText = `Fase Atual: ${getAssistanceLabel(currentMod)}`;
+
+  // Olhar último resultado de falha
+  const lastA = AppState.history.find(h => h.ficha === 'A');
+  if (hint && lastA && lastA.barraFalha !== undefined) {
+    if (lastA.barraFalha >= 8 && currentMod !== 'livre') {
+      hint.innerHTML = `🏆 <strong>HORA DO DESMAME!</strong> No seu último treino você fez <strong>${lastA.barraFalha} repetições</strong> na série da falha! Seu corpo já adaptou: reduza o elástico para o próximo nível ou faça um teste de Barra Livre!`;
+    } else {
+      hint.innerHTML = `📊 <strong>Seu último minuto 39 (falha):</strong> você fez <strong>${lastA.barraFalha} reps</strong> com ${getAssistanceLabel(currentMod)}. Faltam <strong>${Math.max(1, 8 - lastA.barraFalha)} reps</strong> para o sistema liberar o próximo elástico!`;
+    }
+  }
 }
 
 function setBType(type) {

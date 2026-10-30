@@ -166,6 +166,59 @@
         <!-- Renderizado dinamicamente via JS -->
       </div>
 
+      <!-- TERMÔMETRO VISUAL DE DESMAME DA BARRA FIXA -->
+      <div id="desmame-widget" class="glass-panel rounded-2xl p-5 border border-amber-500/30 bg-gradient-to-br from-amber-950/20 via-slate-900 to-slate-900 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm">
+              <i data-lucide="trending-up" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                Termômetro de Desmame da Barra (Rumo à Barra Livre)
+              </h3>
+              <p class="text-[11px] text-slate-400">O sistema monitora seu minuto 39 para avisar a hora exata de trocar de elástico.</p>
+            </div>
+          </div>
+          <span id="desmame-status-pill" class="text-[11px] font-bold px-2.5 py-1 rounded bg-amber-950 text-amber-300 border border-amber-800">
+            Fase Atual: Superband Roxa
+          </span>
+        </div>
+
+        <!-- Trilha de 4 Etapas do Desmame -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 pt-1 text-center text-xs font-mono">
+          <div id="step-verde" class="p-2.5 rounded-xl border border-slate-800 bg-slate-950/60">
+            <span class="text-[10px] text-slate-500 block uppercase font-sans">Etapa 1</span>
+            <span class="font-bold text-emerald-400 block mt-0.5">Superband Verde</span>
+            <span class="text-[10px] text-slate-400">Meta: 8+ reps na falha</span>
+          </div>
+
+          <div id="step-roxa" class="p-2.5 rounded-xl border border-amber-500/50 bg-amber-950/30 ring-1 ring-amber-500/40">
+            <span class="text-[10px] text-amber-400 block uppercase font-sans font-bold">Etapa 2 (Você Aqui)</span>
+            <span class="font-bold text-amber-300 block mt-0.5">Superband Roxa</span>
+            <span class="text-[10px] text-amber-200">Meta: 8+ reps na falha</span>
+          </div>
+
+          <div id="step-vermelha" class="p-2.5 rounded-xl border border-slate-800 bg-slate-950/60">
+            <span class="text-[10px] text-slate-500 block uppercase font-sans">Etapa 3</span>
+            <span class="font-bold text-rose-400 block mt-0.5">Superband Vermelha</span>
+            <span class="text-[10px] text-slate-400">Meta: 8+ reps na falha</span>
+          </div>
+
+          <div id="step-livre" class="p-2.5 rounded-xl border border-slate-800 bg-slate-950/60">
+            <span class="text-[10px] text-slate-500 block uppercase font-sans">Etapa Final 🏆</span>
+            <span class="font-bold text-sky-400 block mt-0.5">Barra Livre (TAF)</span>
+            <span class="text-[10px] text-slate-400">Objetivo Conquistado!</span>
+          </div>
+        </div>
+
+        <div id="desmame-callout" class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-300 flex items-center justify-between">
+          <span id="desmame-hint-text">
+            💡 <strong>Regra do Sistema:</strong> Quando você fizer o Minute 39 (até a falha) e bater <strong>8 repetições ou mais</strong> com o elástico atual, o sistema emitirá um alerta recomendando passar para a próxima etapa!
+          </span>
+        </div>
+      </div>
+
     </section>
 
 
