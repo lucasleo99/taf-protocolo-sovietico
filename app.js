@@ -14,6 +14,15 @@ const AppState = {
     barraMod: 'roxa',
     barraModLabel: 'Superband Roxa'
   },
+  schedule: {
+    1: { ficha: 'A', name: 'Segunda-feira', label: 'Ficha A: Barra + Abdominal + Corrida 20\'', type: 'workout' },
+    2: { ficha: 'ASS', name: 'Terça-feira', label: 'Treino da Assessoria de Corrida', type: 'assessoria' },
+    3: { ficha: 'C', name: 'Quarta-feira', label: 'Ficha C: Flexão de Braço + Trote 40\'', type: 'workout' },
+    4: { ficha: 'OFF', name: 'Quinta-feira', label: 'Descanso Ativo / Recuperação', type: 'rest' },
+    5: { ficha: 'B', name: 'Sexta-feira', label: 'Ficha B: Tiros Intervalados (ou Ficha A)', type: 'workout' },
+    6: { ficha: 'ASS', name: 'Sábado', label: 'Longão com a Assessoria', type: 'assessoria' },
+    0: { ficha: 'OFF', name: 'Domingo', label: 'Descanso Total (Regeneração Neural)', type: 'rest' }
+  },
   currentFicha: 'A',
   targets: {
     A: {
@@ -76,6 +85,128 @@ function releaseWakeLock() {
     wakeLock = null;
     const pill = document.getElementById('wake-lock-pill');
     if (pill) pill.classList.add('hidden');
+  }
+}
+
+// ============================================================
+// PLANNER SEMANAL AUTOMÁTICO ("TREINO DE HOJE")
+// ============================================================
+
+function renderWeeklyPlanner() {
+  const container = document.getElementById('weekly-planner-container');
+  if (!container) return;
+
+  const now = new Date();
+  const todayDay = now.getDay(); // 0 = Domingo, 1 = Segunda, etc.
+  const todayStr = now.toISOString().split('T')[0];
+
+  // Checar se já fez treino hoje
+  const workoutToday = AppState.history.find(h => h.date === todayStr);
+
+  const daysOrder = [1, 2, 3, 4, 5, 6, 0]; // Começa na Segunda e termina no Domingo
+  const dayNamesShort = { 1: 'Seg', 2: 'Ter', 3: 'Qua', 4: 'Qui', 5: 'Sex', 6: 'Sáb', 0: 'Dom' };
+
+  const currentPlan = AppState.schedule[todayDay] || { ficha: 'A', name: 'Hoje', label: 'Treino', type: 'workout' };
+
+  container.innerHTML = `
+    <!-- Topo: Título e Status de Hoje -->
+    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#1e2638] pb-2.5">
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-md bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center text-xs font-bold font-mono">
+          <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h3 class="text-xs font-bold text-white uppercase tracking-wider">Cronograma Semanal</h3>
+            <span class="text-[9px] px-1.5 py-0.2 rounded bg-[#151a26] text-amber-300 font-mono font-bold">Hoje: ${currentPlan.name}</span>
+          </div>
+          <p class="text-[11px] text-slate-400 -mt-0.5">${currentPlan.label}</p>
+        </div>
+      </div>
+
+      <!-- Status de Conclusão de Hoje -->
+      <div>
+        ${workoutToday ? `
+          <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-950/40 border border-emerald-500/40 px-2.5 py-1 rounded-md font-mono">
+            <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i> Sessão de Hoje Concluída!
+          </span>
+        ` : currentPlan.type === 'rest' ? `
+          <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-400 bg-[#151a26] border border-[#1e2638] px-2.5 py-1 rounded-md font-mono">
+            <i data-lucide="coffee" class="w-3.5 h-3.5 text-slate-400"></i> Dia de Recuperação
+          </span>
+        ` : `
+          <button onclick="startTodayPlan()" class="btn-athletic px-3 py-1 rounded-md bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm">
+            <i data-lucide="play" class="w-3 h-3"></i> Fazer Treino de Hoje
+          </button>
+        `}
+      </div>
+    </div>
+
+    <!-- Barra dos 7 Dias da Semana -->
+    <div class="grid grid-cols-7 gap-1.5 pt-1 text-center font-mono">
+      ${daysOrder.map(d => {
+        const item = AppState.schedule[d];
+        const isToday = d === todayDay;
+        const shortName = dayNamesShort[d];
+
+        let badge = item.ficha;
+        if (item.ficha === 'ASS') badge = 'Assess.';
+        if (item.ficha === 'OFF') badge = 'Descanso';
+        if (item.ficha === 'A') badge = 'Ficha A';
+        if (item.ficha === 'B') badge = 'Ficha B';
+        if (item.ficha === 'C') badge = 'Ficha C';
+
+        let cardClass = "border-[#1e2638] bg-[#151a26]/40 text-slate-400";
+        if (isToday) {
+          cardClass = "border-rose-500/70 bg-rose-950/30 text-rose-300 ring-1 ring-rose-500/50";
+        }
+
+        return `
+          <button onclick="selectDaySchedule(${d})" class="p-1.5 rounded-lg border ${cardClass} text-left transition flex flex-col justify-between hover:border-slate-600">
+            <div class="flex justify-between items-center text-[9px] font-bold uppercase w-full">
+              <span>${shortName}</span>
+              ${isToday ? `<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>` : ''}
+            </div>
+            <div class="text-[10px] font-bold text-white mt-1 truncate font-mono">${badge}</div>
+          </button>
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  if (window.lucide) lucide.createIcons();
+}
+
+function startTodayPlan() {
+  const now = new Date();
+  const todayDay = now.getDay();
+  const currentPlan = AppState.schedule[todayDay];
+
+  if (!currentPlan) return;
+
+  if (currentPlan.ficha === 'A' || currentPlan.ficha === 'B' || currentPlan.ficha === 'C') {
+    selectFicha(currentPlan.ficha);
+    // Rolagem suave até a ficha
+    document.getElementById('ficha-card-container')?.scrollIntoView({ behavior: 'smooth' });
+  } else if (currentPlan.ficha === 'ASS') {
+    switchTab('garmin');
+    document.getElementById('assessoria-form')?.scrollIntoView({ behavior: 'smooth' });
+  } else {
+    alert("Hoje é dia de descanso programado! A recuperação faz parte essencial do método para os tendões absorverem o volume.");
+  }
+}
+
+function selectDaySchedule(dayNumber) {
+  const plan = AppState.schedule[dayNumber];
+  if (!plan) return;
+
+  if (plan.ficha === 'A' || plan.ficha === 'B' || plan.ficha === 'C') {
+    selectFicha(plan.ficha);
+    document.getElementById('ficha-card-container')?.scrollIntoView({ behavior: 'smooth' });
+  } else if (plan.ficha === 'ASS') {
+    switchTab('garmin');
+  } else {
+    alert(`${plan.name}: ${plan.label}.\n\nAproveite para hidratar bem, fazer mobilidade leve e garantir 8 horas de sono para regenerar as fibras.`);
   }
 }
 
@@ -164,6 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
   checkCalibrationStatus();
   updateCycleBadge();
   calculateHeartZones();
+  renderWeeklyPlanner();
   renderFichaCard('A');
   updateDesmameWidget();
   renderHistoryTable();
@@ -1026,6 +1158,7 @@ function finishWorkoutTimer() {
 
   saveToLocalStorage();
   updateDesmameWidget();
+  renderWeeklyPlanner();
   alert(`Sessão Registrada.\n\n${suggestion.text}`);
   switchTab('historico');
 }
@@ -1668,6 +1801,7 @@ function submitManualWorkout(e) {
   AppState.history.unshift(record);
   saveToLocalStorage();
   updateDesmameWidget();
+  renderWeeklyPlanner();
   closeManualModal();
   renderHistoryTable();
   alert("Sessão salva.");
