@@ -109,78 +109,81 @@ function renderWeeklyPlanner() {
   const currentPlan = AppState.schedule[todayDay] || { ficha: 'A', name: 'Hoje', label: 'Treino', type: 'workout' };
 
   container.innerHTML = `
-    <!-- Topo: Título e Status de Hoje -->
-    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#1e2638] pb-2.5">
-      <div class="flex items-center gap-2">
-        <div class="w-7 h-7 rounded-md bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center text-xs font-bold font-mono">
-          <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+    <!-- Topo do Hero Card: Foco Atlético -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
+      <div class="space-y-1">
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-[#b8ff00]/15 text-[#b8ff00] font-mono">
+            Hoje • ${currentPlan.name}
+          </span>
+          ${currentPlan.hasLegs ? `
+            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 font-mono flex items-center gap-1">
+              <i data-lucide="shield" class="w-3 h-3 text-amber-400"></i> + Pernas (25m)
+            </span>
+          ` : ''}
         </div>
-        <div>
-          <div class="flex items-center gap-1.5 flex-wrap">
-            <h3 class="text-xs font-bold text-white uppercase tracking-wider">Cronograma Semanal</h3>
-            <span class="text-[9px] px-1.5 py-0.5 rounded bg-[#151a26] text-amber-300 font-mono font-bold">Hoje: ${currentPlan.name}</span>
-            ${currentPlan.hasLegs ? `
-              <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-mono font-bold flex items-center gap-1">
-                <i data-lucide="shield" class="w-2.5 h-2.5 text-amber-400"></i> + Pernas (25-30m)
-              </span>
-            ` : ''}
-          </div>
-          <p class="text-[11px] text-slate-400 -mt-0.5">${currentPlan.label}</p>
-        </div>
+        <h2 class="text-xl md:text-2xl font-black text-white tracking-tight">
+          ${currentPlan.label}
+        </h2>
+        <p class="text-xs text-slate-400 leading-relaxed max-w-xl">
+          ${currentPlan.detail}
+        </p>
       </div>
 
-      <!-- Status de Conclusão de Hoje / Ações -->
-      <div class="flex items-center gap-2">
+      <!-- Ação Principal de Destaque -->
+      <div class="flex items-center gap-2 flex-shrink-0">
         ${currentPlan.hasLegs ? `
-          <button onclick="openLegsModal()" class="btn-athletic px-2.5 py-1 rounded-md bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold text-xs flex items-center gap-1 shadow-sm" title="Ver rotina de pernas">
-            <i data-lucide="shield" class="w-3 h-3 text-amber-400"></i> Treino Pernas
+          <button onclick="openLegsModal()" class="btn-athletic btn-secondary px-3 py-2.5 text-xs font-bold text-amber-300 border-amber-500/30">
+            <i data-lucide="shield" class="w-3.5 h-3.5"></i> Ver Pernas
           </button>
         ` : ''}
 
         ${workoutToday ? `
-          <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-950/40 border border-emerald-500/40 px-2.5 py-1 rounded-md font-mono">
-            <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i> Concluído!
-          </span>
+          <div class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-4 py-2.5 rounded-xl font-mono">
+            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> Treino Concluído
+          </div>
         ` : currentPlan.type === 'rest' ? `
-          <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-400 bg-[#151a26] border border-[#1e2638] px-2.5 py-1 rounded-md font-mono">
-            <i data-lucide="coffee" class="w-3.5 h-3.5 text-slate-400"></i> Recuperação
-          </span>
+          <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 bg-white/5 border border-white/[0.08] px-4 py-2.5 rounded-xl font-mono">
+            <i data-lucide="coffee" class="w-4 h-4 text-slate-400"></i> Descanso
+          </div>
         ` : `
-          <button onclick="startTodayPlan()" class="btn-athletic px-3 py-1 rounded-md bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm">
-            <i data-lucide="play" class="w-3 h-3"></i> Fazer Treino de Hoje
+          <button onclick="startTodayPlan()" class="btn-athletic btn-primary px-5 py-2.5 text-xs font-extrabold shadow-lg">
+            <i data-lucide="play" class="w-4 h-4"></i> Iniciar no Timer
           </button>
         `}
       </div>
     </div>
 
-    <!-- Barra dos 7 Dias da Semana -->
-    <div class="grid grid-cols-7 gap-1.5 pt-1 text-center font-mono">
-      ${daysOrder.map(d => {
-        const item = AppState.schedule[d];
-        const isToday = d === todayDay;
-        const shortName = dayNamesShort[d];
+    <!-- Régua Semanal dos 7 Dias (Minimalista & Esportiva) -->
+    <div class="space-y-1.5 pt-1">
+      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Cronograma Semanal</span>
+      <div class="grid grid-cols-7 gap-1.5 text-center font-mono">
+        ${daysOrder.map(d => {
+          const item = AppState.schedule[d];
+          const isToday = d === todayDay;
+          const shortName = dayNamesShort[d];
+          const badgeTitle = item.badge || item.ficha;
+          const badgeSub = item.badgeSub || '';
 
-        const badgeTitle = item.badge || item.ficha;
-        const badgeSub = item.badgeSub || '';
+          let cardClass = "border-white/[0.07] bg-white/[0.03] text-slate-400 hover:border-white/[0.2] hover:bg-white/[0.06]";
+          if (isToday) {
+            cardClass = "border-[#b8ff00] bg-[#b8ff00]/10 text-white ring-1 ring-[#b8ff00]/40";
+          }
 
-        let cardClass = "border-[#1e2638] bg-[#151a26]/40 text-slate-400 hover:border-slate-500";
-        if (isToday) {
-          cardClass = "border-rose-500 bg-rose-950/40 text-rose-300 ring-1 ring-rose-500/60 shadow-sm";
-        }
-
-        return `
-          <button onclick="selectDaySchedule(${d})" class="p-1.5 rounded-lg border ${cardClass} text-left transition flex flex-col justify-between overflow-hidden">
-            <div class="flex justify-between items-center text-[9px] font-bold uppercase w-full">
-              <span class="${isToday ? 'text-rose-400 font-bold' : 'text-slate-400'}">${shortName}</span>
-              ${isToday ? `<span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>` : ''}
-            </div>
-            <div class="mt-1">
-              <div class="text-[10px] font-bold text-white truncate leading-tight">${badgeTitle}</div>
-              ${badgeSub ? `<div class="text-[8px] ${item.hasLegs ? 'text-amber-400 font-bold' : 'text-slate-400'} truncate leading-tight mt-0.5">${badgeSub}</div>` : ''}
-            </div>
-          </button>
-        `;
-      }).join('')}
+          return `
+            <button onclick="selectDaySchedule(${d})" class="p-2 rounded-xl border ${cardClass} text-left transition flex flex-col justify-between overflow-hidden">
+              <div class="flex justify-between items-center text-[10px] font-bold uppercase w-full">
+                <span class="${isToday ? 'text-[#b8ff00] font-black' : 'text-slate-400'}">${shortName}</span>
+                ${isToday ? `<span class="w-1.5 h-1.5 rounded-full bg-[#b8ff00] animate-pulse"></span>` : ''}
+              </div>
+              <div class="mt-1.5">
+                <div class="text-[11px] font-bold text-white truncate">${badgeTitle}</div>
+                ${badgeSub ? `<div class="text-[9px] ${item.hasLegs ? 'text-amber-300 font-semibold' : 'text-slate-400'} truncate mt-0.5">${badgeSub}</div>` : ''}
+              </div>
+            </button>
+          `;
+        }).join('')}
+      </div>
     </div>
   `;
 
@@ -335,6 +338,13 @@ document.addEventListener('DOMContentLoaded', () => {
   initCharts();
   setupKeyboardShortcuts();
 
+  // Registro do Service Worker (PWA Offline)
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(err => {
+      console.log('SW não pôde ser registrado:', err);
+    });
+  }
+
   if (window.lucide) {
     lucide.createIcons();
   }
@@ -398,24 +408,62 @@ function loadFromLocalStorage() {
 // ============================================================
 
 function switchTab(tabId) {
+  // Esconder todas as abas
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.nav-tab-clean').forEach(el => {
-    el.classList.remove('active', 'border-rose-500', 'text-rose-400');
-    el.classList.add('border-transparent', 'text-slate-400');
+
+  // Desativar botões do desktop nav
+  document.querySelectorAll('.desktop-nav-item').forEach(el => {
+    el.classList.remove('active', 'text-white', 'bg-white/10');
+    el.classList.add('text-slate-300');
   });
 
-  const targetContent = document.getElementById(`tab-${tabId}`);
-  const targetBtn = document.getElementById(`tab-btn-${tabId}`);
+  // Desativar botões da bottom nav mobile
+  document.querySelectorAll('.bottom-nav-item').forEach(el => {
+    el.classList.remove('active');
+  });
 
+  // Ativar o conteúdo da aba selecionada
+  const targetContent = document.getElementById(`tab-${tabId}`);
   if (targetContent) targetContent.classList.add('active');
-  if (targetBtn) {
-    targetBtn.classList.add('active', 'border-rose-500', 'text-rose-400');
-    targetBtn.classList.remove('border-transparent', 'text-slate-400');
+
+  // Mapear tabId para os botões mestres de navegação
+  let mainNavId = tabId;
+  if (tabId === 'nivel') mainNavId = 'edital';
+  if (tabId === 'garmin' || tabId === 'ajustes') mainNavId = 'historico';
+
+  const desktopBtn = document.getElementById(`nav-btn-${mainNavId}`);
+  if (desktopBtn) {
+    desktopBtn.classList.add('active', 'text-white', 'bg-white/10');
+    desktopBtn.classList.remove('text-slate-300');
+  }
+
+  const bottomBtn = document.getElementById(`bnav-${mainNavId}`);
+  if (bottomBtn) {
+    bottomBtn.classList.add('active');
+  }
+
+  // Sincronizar segmented controls
+  if (tabId === 'edital' || tabId === 'nivel') {
+    const segBtn = document.getElementById(`seg-${tabId}`);
+    if (segBtn) {
+      document.querySelectorAll('#seg-edital-group button').forEach(b => b.classList.remove('active'));
+      segBtn.classList.add('active');
+    }
+  }
+
+  if (tabId === 'historico' || tabId === 'garmin' || tabId === 'ajustes') {
+    const segBtn = document.getElementById(`seg-${tabId}`);
+    if (segBtn) {
+      document.querySelectorAll('#seg-evo-group button').forEach(b => b.classList.remove('active'));
+      segBtn.classList.add('active');
+    }
   }
 
   if (tabId === 'historico') {
     setTimeout(updateCharts, 100);
   }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 
   if (window.lucide) {
     lucide.createIcons();
@@ -646,104 +694,86 @@ function renderFichaCard(fichaKey) {
   if (fichaKey === 'A') {
     const t = AppState.targets.A;
     container.innerHTML = `
-      <div class="flex flex-wrap items-center justify-between border-b border-[#1e2638] pb-2.5 gap-2">
+      <div class="flex flex-wrap items-center justify-between border-b border-white/[0.08] pb-3 gap-2">
         <div>
-          <span class="text-[10px] font-mono font-bold text-rose-400 uppercase tracking-wider block">Ficha A • Duração Total: ~65 Minutos</span>
-          <h2 class="text-sm md:text-base font-bold text-white">Barra Fixa + Abdominal + Pegada + Corrida</h2>
+          <span class="text-[11px] font-mono font-bold text-rose-400 uppercase tracking-wider block">Ficha A • Duração: ~65 Minutos</span>
+          <h2 class="text-base font-extrabold text-white">Barra Fixa + Abdominal + Pegada + Corrida</h2>
         </div>
-        <div class="flex items-center gap-1.5">
-          <button onclick="openManualModal('A')" class="btn-athletic px-2.5 py-1.5 rounded bg-[#151a26] hover:bg-[#1e2638] text-xs text-slate-300 border border-[#1e2638]">
+        <div class="flex items-center gap-2">
+          <button onclick="openManualModal('A')" class="btn-athletic btn-secondary px-3 py-1.5 text-xs text-slate-300">
             Preencher Manual
           </button>
-          <button onclick="launchWorkoutTimer('A')" class="btn-athletic px-3.5 py-1.5 rounded bg-rose-600 hover:bg-rose-500 text-xs font-bold text-white flex items-center gap-1.5 shadow-sm">
+          <button onclick="launchWorkoutTimer('A')" class="btn-athletic btn-primary px-4 py-1.5 text-xs font-bold text-black shadow-md">
             <i data-lucide="play" class="w-3.5 h-3.5"></i> Iniciar no Timer
           </button>
         </div>
       </div>
 
-      <!-- EXPLICAÇÃO DIDÁTICA DO TEMPO (CLAREZA TOTAL) -->
-      <div class="p-3 rounded-lg bg-[#151a26] border border-rose-500/30 text-xs space-y-1">
-        <div class="flex items-center gap-1.5 text-rose-300 font-bold text-[11px] uppercase tracking-wide">
-          <i data-lucide="info" class="w-3.5 h-3.5 text-rose-400"></i> Como Funciona o Tempo Desta Sessão:
+      <!-- Explicação do Tempo -->
+      <div class="p-3.5 rounded-xl bg-[#161b26] border border-white/[0.08] text-xs space-y-1.5">
+        <div class="flex items-center gap-1.5 text-[#b8ff00] font-bold text-[11px] uppercase tracking-wide">
+          <i data-lucide="info" class="w-3.5 h-3.5 text-[#b8ff00]"></i> Estrutura da Sessão de Força:
         </div>
         <p class="text-slate-300 text-[11px] leading-relaxed">
-          O bloco EMOM tem <strong class="text-white">40 minutos totais de relógio</strong> (NÃO são 40 minutos de cada!). Você reveza os exercícios a cada virada de minuto:
+          O bloco EMOM tem <strong class="text-white">40 minutos de relógio</strong> (revezando a cada virada de minuto):
         </p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1 font-mono text-[11px]">
-          <div class="bg-[#10141e] p-2 rounded border border-[#1e2638]">
-            <span class="text-rose-400 font-bold block">Minutos Ímpares (1, 3, 5, 7... 37):</span>
-            <span class="text-white">1 Barra Fixa</span> (${getAssistanceLabel(t.barraMod, t.barraExtraKg)}). Faz a barra em 3 segundos e descansa o resto do minuto. (20 séries no total).
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 font-mono text-[11px]">
+          <div class="bg-[#090b10] p-2.5 rounded-lg border border-white/[0.06]">
+            <span class="text-rose-400 font-bold block mb-0.5">Minutos Ímpares (1, 3, 5... 37):</span>
+            <span class="text-white font-bold">1 Barra Fixa</span> (${getAssistanceLabel(t.barraMod, t.barraExtraKg)}). Executa em 3s e descansa o restante do minuto (20 séries).
           </div>
-          <div class="bg-[#10141e] p-2 rounded border border-[#1e2638]">
-            <span class="text-sky-400 font-bold block">Minutos Pares (2, 4, 6, 8... 38):</span>
-            <span class="text-white">${t.abdReps} Abdominais</span>. Faz em 10 segundos e descansa o resto do minuto. (20 séries no total).
+          <div class="bg-[#090b10] p-2.5 rounded-lg border border-white/[0.06]">
+            <span class="text-sky-400 font-bold block mb-0.5">Minutos Pares (2, 4, 6... 38):</span>
+            <span class="text-white font-bold">${t.abdReps} Abdominais</span>. Executa em 10s e descansa o restante do minuto (20 séries).
           </div>
         </div>
       </div>
 
-      <!-- OS 4 BLOCOS PASSO A PASSO -->
+      <!-- 4 Passos -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs font-mono">
-        <!-- BLOCO 1: FORÇA PURA -->
-        <div class="card-subtle p-2.5 border-amber-500/30 bg-amber-950/10">
+        <div class="card-subtle p-3 border-white/[0.08] bg-[#161b26]">
           <div class="flex justify-between items-center">
             <span class="text-[9px] text-amber-400 uppercase font-bold">Passo 1 (3 min)</span>
-            <span class="text-[9px] text-slate-500">Antes do EMOM</span>
+            <span class="text-[9px] text-slate-500">Antes</span>
           </div>
           <div class="text-white font-bold text-[11px] mt-0.5">3x Excêntricas 5s</div>
-          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">Pule até o queixo passar da barra e desça freando em 5s sem elástico. Constrói arrancada.</span>
+          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">Subida e descida freando em 5s sem elástico.</span>
         </div>
 
-        <!-- BLOCO 2: DENSIDADE SUBMÁXIMA -->
-        <div class="card-subtle p-2.5 border-rose-900/60 bg-rose-950/10">
+        <div class="card-subtle p-3 border-white/[0.08] bg-[#161b26]">
           <div class="flex justify-between items-center">
             <span class="text-[9px] text-rose-400 uppercase font-bold">Passo 2 (40 min)</span>
-            <span class="text-[9px] text-rose-300 font-bold">Principal</span>
+            <span class="text-[9px] text-[#b8ff00] font-bold">Principal</span>
           </div>
           <div class="text-white font-bold text-[11px] mt-0.5">EMOM Alternado</div>
-          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">1 Barra / ${t.abdReps} Abd revezando a cada minuto. Minutos 39 e 40 são até a falha!</span>
+          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">1 Barra / ${t.abdReps} Abd. Minutos 39 e 40 até a falha!</span>
         </div>
 
-        <!-- BLOCO 3: DEAD HANG -->
-        <div class="card-subtle p-2.5 border-blue-500/30 bg-blue-950/10">
+        <div class="card-subtle p-3 border-white/[0.08] bg-[#161b26]">
           <div class="flex justify-between items-center">
-            <span class="text-[9px] text-blue-400 uppercase font-bold">Passo 3 (2 min)</span>
+            <span class="text-[9px] text-sky-400 uppercase font-bold">Passo 3 (2 min)</span>
             <span class="text-[9px] text-slate-500">Pós-EMOM</span>
           </div>
           <div class="text-white font-bold text-[11px] mt-0.5">2x 30s Dead Hang</div>
-          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">Fique pendurado estático na barra para calejar as mãos e antebraços.</span>
+          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">Sustentação na barra para blindar a pegada.</span>
         </div>
 
-        <!-- BLOCO 4: CORRIDA OU FORTALECIMENTO -->
-        <div class="card-subtle p-2.5 border-emerald-500/30 bg-emerald-950/10">
+        <div class="card-subtle p-3 border-white/[0.08] bg-[#161b26]">
           <div class="flex justify-between items-center">
             <span class="text-[9px] text-emerald-400 uppercase font-bold">Passo 4</span>
-            <span class="text-[9px] text-slate-500">${new Date().getDay() === 5 ? 'Sexta: Pernas' : 'Final'}</span>
+            <span class="text-[9px] text-slate-500">${new Date().getDay() === 5 ? 'Sexta' : 'Final'}</span>
           </div>
-          <div class="text-white font-bold text-[11px] mt-0.5">${new Date().getDay() === 5 ? 'Fortalecimento Pernas' : 'Corrida Contínua'}</div>
-          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">${new Date().getDay() === 5 ? '25-30 min de pernas (búlgaro, panturrilha e tibial).' : '5\' Z2 + 10\' Z3 + 5\' Z2 (ou poupe para a corrida da Assessoria).'}</span>
+          <div class="text-white font-bold text-[11px] mt-0.5">${new Date().getDay() === 5 ? 'Pernas (25-30m)' : 'Corrida Contínua'}</div>
+          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">${new Date().getDay() === 5 ? 'Búlgaro, panturrilha e tibial na parede.' : '5\' Z2 + 10\' Z3 + 5\' Z2 leve.'}</span>
         </div>
-      </div>
-
-      <!-- BANNER DE FORTALECIMENTO DE PERNAS (SEXTA-FEIRA) -->
-      <div class="p-2.5 rounded-lg bg-amber-950/20 border border-amber-500/30 flex items-center justify-between gap-2 text-xs">
-        <div class="flex items-center gap-2">
-          <i data-lucide="shield" class="w-4 h-4 text-amber-400 flex-shrink-0"></i>
-          <div>
-            <span class="text-[11px] font-bold text-amber-300 block">Sexta-feira: Ficha A + Fortalecimento de Pernas (25-30 min)</span>
-            <span class="text-[10px] text-slate-400 block">Blindagem de canelas e joelhos sem sobrecarregar a barra fixa.</span>
-          </div>
-        </div>
-        <button onclick="openLegsModal()" class="btn-athletic px-2.5 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[10px] font-bold whitespace-nowrap">
-          Ver Exercícios &rarr;
-        </button>
       </div>
 
       <!-- Configuração de Carga e Assistência -->
-      <div class="p-2.5 rounded-lg bg-[#151a26]/60 border border-[#1e2638] flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div class="p-3 rounded-xl bg-[#161b26] border border-white/[0.08] flex flex-wrap items-center justify-between gap-3 text-xs">
         <div class="flex flex-wrap items-center gap-3">
           <div class="flex items-center gap-1.5">
             <span class="text-slate-400 text-[11px]">Tipo de Barra:</span>
-            <select id="select-ficha-a-mod" onchange="updateFichaAMod(this.value)" class="bg-[#10141e] border border-[#1e2638] text-slate-200 text-xs rounded px-2 py-1 focus:outline-none">
+            <select id="select-ficha-a-mod" onchange="updateFichaAMod(this.value)" class="bg-[#090b10] border border-white/[0.1] text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none">
               <option value="roxa" ${t.barraMod === 'roxa' ? 'selected' : ''}>Superband Roxa</option>
               <option value="verde" ${t.barraMod === 'verde' ? 'selected' : ''}>Superband Verde</option>
               <option value="vermelha" ${t.barraMod === 'vermelha' ? 'selected' : ''}>Superband Vermelha</option>
@@ -753,10 +783,9 @@ function renderFichaCard(fichaKey) {
             </select>
           </div>
 
-          <!-- Campo de Carga Extra (Item 6) -->
           <div class="flex items-center gap-1.5">
             <span class="text-slate-400 text-[11px]">Carga Extra:</span>
-            <div class="flex items-center bg-[#10141e] border border-[#1e2638] rounded px-2 py-0.5">
+            <div class="flex items-center bg-[#090b10] border border-white/[0.1] rounded-lg px-2.5 py-1">
               <input type="number" min="0" step="1" id="input-barra-extra" value="${t.barraExtraKg || 0}" onchange="updateBarraExtraKg(this.value)" class="w-12 bg-transparent text-white font-mono text-xs focus:outline-none">
               <span class="text-[10px] text-slate-400">kg</span>
             </div>
@@ -771,105 +800,91 @@ function renderFichaCard(fichaKey) {
   } else if (fichaKey === 'B') {
     const t = AppState.targets.B;
     container.innerHTML = `
-      <div class="flex flex-wrap items-center justify-between border-b border-[#1e2638] pb-2.5 gap-2">
+      <div class="flex flex-wrap items-center justify-between border-b border-white/[0.08] pb-3 gap-2">
         <div>
-          <span class="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-wider block">Ficha B • Duração Total: 52 Minutos</span>
-          <h2 class="text-sm md:text-base font-bold text-white">Corrida Intervalada (Tiros para VO2 Máx)</h2>
+          <span class="text-[11px] font-mono font-bold text-amber-400 uppercase tracking-wider block">Ficha B • Duração: 52 Minutos</span>
+          <h2 class="text-base font-extrabold text-white">Corrida Intervalada (Tiros para VO2 Máx)</h2>
         </div>
-        <button onclick="openManualModal('B')" class="btn-athletic px-2.5 py-1.5 rounded bg-[#151a26] hover:bg-[#1e2638] text-xs text-slate-300 border border-[#1e2638]">
+        <button onclick="openManualModal('B')" class="btn-athletic btn-secondary px-3 py-1.5 text-xs text-slate-300">
           Registrar Tiro
         </button>
       </div>
 
       <div class="flex items-center gap-2 mb-1">
         <span class="text-slate-400 text-xs">Tipo de Treino:</span>
-        <div class="inline-flex rounded bg-[#151a26] p-0.5 border border-[#1e2638] text-xs font-mono">
-          <button onclick="setBType('B1')" class="px-2.5 py-1 rounded font-bold ${t.type === 'B1' ? 'bg-rose-600 text-white' : 'text-slate-400'}">
+        <div class="segmented-control text-xs font-mono">
+          <button onclick="setBType('B1')" class="${t.type === 'B1' ? 'active' : ''}">
             B.1 Curto (30" / 90")
           </button>
-          <button onclick="setBType('B2')" class="px-2.5 py-1 rounded font-bold ${t.type === 'B2' ? 'bg-slate-700 text-white' : 'text-slate-400'}">
+          <button onclick="setBType('B2')" class="${t.type === 'B2' ? 'active' : ''}">
             B.2 Longo (2' / 3')
           </button>
         </div>
       </div>
 
-      <div class="card-subtle p-3 text-xs space-y-2">
+      <div class="card-subtle p-3.5 text-xs space-y-2">
         <div class="text-[11px] font-bold text-amber-300 uppercase tracking-wide">
           Linha do Tempo dos 52 Minutos:
         </div>
         ${t.type === 'B1' ? `
-          <div class="grid grid-cols-1 sm:grid-cols-4 gap-1.5 font-mono text-[11px]">
-            <div class="p-2 rounded bg-[#10141e] border border-[#1e2638]">1. Aquecimento: 5 min Z2 leve</div>
-            <div class="p-2 rounded bg-[#10141e] border border-[#1e2638]">2. Transição: 2 min caminhada</div>
-            <div class="p-2 rounded bg-[#10141e] border border-rose-500/40 text-rose-300">3. 20 Tiros: 30" tiro / 90" caminhada (40 min)</div>
-            <div class="p-2 rounded bg-[#10141e] border border-[#1e2638]">4. Volta à calma: 5 min Z2 leve</div>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 font-mono text-[11px]">
+            <div class="p-2.5 rounded-lg bg-[#090b10] border border-white/[0.06]">1. Aquecimento: 5 min Z2 leve</div>
+            <div class="p-2.5 rounded-lg bg-[#090b10] border border-white/[0.06]">2. Transição: 2 min caminhada</div>
+            <div class="p-2.5 rounded-lg bg-[#090b10] border border-rose-500/30 text-rose-300">3. 20 Tiros: 30" tiro / 90" caminhada</div>
+            <div class="p-2.5 rounded-lg bg-[#090b10] border border-white/[0.06]">4. Volta à calma: 5 min Z2 leve</div>
           </div>
         ` : `
-          <div class="grid grid-cols-1 sm:grid-cols-4 gap-1.5 font-mono text-[11px]">
-            <div class="p-2 rounded bg-[#10141e] border border-[#1e2638]">1. Aquecimento: 5 min Z2 leve</div>
-            <div class="p-2 rounded bg-[#10141e] border border-[#1e2638]">2. Transição: 2 min caminhada</div>
-            <div class="p-2 rounded bg-[#10141e] border border-sky-500/40 text-sky-300">3. 8 Tiros: 2 min forte / 3 min caminhada (40 min)</div>
-            <div class="p-2 rounded bg-[#10141e] border border-[#1e2638]">4. Volta à calma: 5 min Z2 leve</div>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 font-mono text-[11px]">
+            <div class="p-2.5 rounded-lg bg-[#090b10] border border-white/[0.06]">1. Aquecimento: 5 min Z2 leve</div>
+            <div class="p-2.5 rounded-lg bg-[#090b10] border border-white/[0.06]">2. Transição: 2 min caminhada</div>
+            <div class="p-2.5 rounded-lg bg-[#090b10] border border-sky-500/30 text-sky-300">3. 8 Tiros: 2 min forte / 3 min caminhada</div>
+            <div class="p-2.5 rounded-lg bg-[#090b10] border border-white/[0.06]">4. Volta à calma: 5 min Z2 leve</div>
           </div>
         `}
-        <span class="text-[10px] text-slate-400 block pt-1 font-sans">
-          Nota: Se você treina com assessoria de corrida, pode substituir esta sessão pelo treino de tiros passado pelo seu treinador!
-        </span>
       </div>
     `;
   } else if (fichaKey === 'C') {
     const t = AppState.targets.C;
     container.innerHTML = `
-      <div class="flex flex-wrap items-center justify-between border-b border-[#1e2638] pb-2.5 gap-2">
+      <div class="flex flex-wrap items-center justify-between border-b border-white/[0.08] pb-3 gap-2">
         <div>
-          <span class="text-[10px] font-mono font-bold text-sky-400 uppercase tracking-wider block">Ficha C • Duração Total: 60 Minutos</span>
-          <h2 class="text-sm md:text-base font-bold text-white">Flexão de Braço (20 min) + Trote Longo Z2 (40 min)</h2>
+          <span class="text-[11px] font-mono font-bold text-sky-400 uppercase tracking-wider block">Ficha C • Duração: 20 a 60 Minutos</span>
+          <h2 class="text-base font-extrabold text-white">Flexão de Braço (20 min EMOM) + Trote Z2</h2>
         </div>
-        <div class="flex items-center gap-1.5">
-          <button onclick="openManualModal('C')" class="btn-athletic px-2.5 py-1.5 rounded bg-[#151a26] hover:bg-[#1e2638] text-xs text-slate-300 border border-[#1e2638]">
+        <div class="flex items-center gap-2">
+          <button onclick="openManualModal('C')" class="btn-athletic btn-secondary px-3 py-1.5 text-xs text-slate-300">
             Preencher Manual
           </button>
-          <button onclick="launchWorkoutTimer('C')" class="btn-athletic px-3 py-1.5 rounded bg-rose-600 hover:bg-rose-500 text-xs font-bold text-white flex items-center gap-1.5">
+          <button onclick="launchWorkoutTimer('C')" class="btn-athletic btn-primary px-4 py-1.5 text-xs font-bold text-black shadow-md">
             <i data-lucide="play" class="w-3.5 h-3.5"></i> Iniciar no Timer
           </button>
         </div>
       </div>
 
-      <!-- EXPLICAÇÃO DIDÁTICA DO TEMPO FICHA C -->
-      <div class="p-3 rounded-lg bg-[#151a26] border border-sky-500/30 text-xs space-y-1">
+      <div class="p-3.5 rounded-xl bg-[#161b26] border border-white/[0.08] text-xs space-y-1.5">
         <div class="flex items-center gap-1.5 text-sky-300 font-bold text-[11px] uppercase tracking-wide">
-          <i data-lucide="info" class="w-3.5 h-3.5 text-sky-400"></i> Como Funciona o Tempo Desta Sessão:
+          <i data-lucide="info" class="w-3.5 h-3.5 text-sky-400"></i> Estrutura da Sessão de Flexão:
         </div>
         <p class="text-slate-300 text-[11px] leading-relaxed">
-          Esta sessão é dividida em dois momentos bem separados:
+          20 minutos EMOM de Flexão: a cada virada de minuto, faça <strong class="text-white">${t.flexaoReps} flexões</strong> em 5s e descanse o resto do minuto. No 20º minuto, execute até a falha técnica!
         </p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1 font-mono text-[11px]">
-          <div class="bg-[#10141e] p-2 rounded border border-[#1e2638]">
-            <span class="text-sky-400 font-bold block">1ª Parte: 20 Minutos EMOM de Flexão</span>
-            A cada minuto (do min 1 ao 19), você faz <strong class="text-white">${t.flexaoReps} flexões</strong> em 5 segundos e descansa o restante do minuto. No minuto 20, faz até a falha técnica!
-          </div>
-          <div class="bg-[#10141e] p-2 rounded border border-[#1e2638]">
-            <span class="text-emerald-400 font-bold block">2ª Parte: 40' Trote (Opcional)</span>
-            No protocolo padrão há 40' de trote Z2. <em>Como você já corre 4x com assessoria (Terça, Quinta, Sábado e Domingo), faça apenas os 20' EMOM de flexão e preserve as pernas para o intervalado de Quinta!</em>
-          </div>
-        </div>
       </div>
     `;
   } else if (fichaKey === 'NC') {
     const t = AppState.targets.NC;
     container.innerHTML = `
-      <div class="flex flex-wrap items-center justify-between border-b border-[#1e2638] pb-2.5 gap-2">
+      <div class="flex flex-wrap items-center justify-between border-b border-white/[0.08] pb-3 gap-2">
         <div>
-          <span class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wider block">Transição Aeróbica</span>
-          <h2 class="text-sm md:text-base font-bold text-white">EMOM Corrida / Caminhada</h2>
+          <span class="text-[11px] font-mono font-bold text-emerald-400 uppercase tracking-wider block">Transição Aeróbica</span>
+          <h2 class="text-base font-extrabold text-white">EMOM Corrida / Caminhada</h2>
         </div>
-        <button onclick="launchWorkoutTimer('NC')" class="btn-athletic px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white flex items-center gap-1.5">
+        <button onclick="launchWorkoutTimer('NC')" class="btn-athletic btn-primary px-4 py-1.5 text-xs font-bold text-black shadow-md">
           <i data-lucide="play" class="w-3.5 h-3.5"></i> Iniciar Timer
         </button>
       </div>
 
-      <div class="card-subtle p-3 text-xs font-mono text-slate-300">
-        Cada minuto: <strong class="text-emerald-400">${t.troteSec}s de trote</strong> + <strong class="text-slate-400">${60 - t.troteSec}s de caminhada</strong>. No último minuto, trote até a falha.
+      <div class="card-subtle p-3.5 text-xs font-mono text-slate-300">
+        A cada minuto: <strong class="text-[#b8ff00]">${t.troteSec}s de trote</strong> + <strong class="text-slate-400">${60 - t.troteSec}s de caminhada</strong>. No último minuto, trote até a falha.
       </div>
     `;
   }
@@ -924,11 +939,11 @@ function updateDesmameWidget() {
     const el = document.getElementById(`step-${s}`);
     if (!el) return;
     if (s === currentMod) {
-      el.className = "p-2.5 rounded-lg border border-amber-500/50 bg-amber-950/20";
+      el.className = "p-2.5 rounded-lg border border-amber-500/50 bg-amber-500/10";
       const badge = el.querySelector('span');
       if (badge) badge.className = "text-[10px] text-amber-400 block uppercase font-mono font-bold";
     } else {
-      el.className = "p-2.5 rounded-lg border border-[#1e2638] bg-[#151a26]/50";
+      el.className = "p-2.5 rounded-lg border border-white/[0.08] bg-[#161b26]";
       const badge = el.querySelector('span');
       if (badge) badge.className = "text-[10px] text-slate-500 block uppercase font-mono";
     }
@@ -1401,6 +1416,17 @@ function getAudioContext() {
 }
 
 function playBeep(freq = 800, duration = 0.1) {
+  // Feedback háptico (Vibração no bolso/braçadeira)
+  if ('vibrate' in navigator) {
+    try {
+      if (freq >= 1200) {
+        navigator.vibrate([140, 60, 140]); // Virada de minuto ou início
+      } else {
+        navigator.vibrate(60); // Bips de contagem regressiva
+      }
+    } catch (e) {}
+  }
+
   if (!AppState.timer.soundEnabled) return;
   try {
     const ctx = getAudioContext();
@@ -1465,11 +1491,11 @@ function calculateHeartZones() {
   const reserve = fcMax - hrRest;
 
   const zones = [
-    { name: 'Z1', label: 'Recuperação', minPct: 0.50, maxPct: 0.60, colorClass: 'border-[#1e2638] bg-[#151a26] text-blue-300' },
-    { name: 'Z2', label: 'Base Aeróbica', minPct: 0.60, maxPct: 0.70, colorClass: 'border-emerald-500/50 bg-emerald-950/20 text-emerald-400' },
-    { name: 'Z3', label: 'Ritmo Limiar', minPct: 0.70, maxPct: 0.80, colorClass: 'border-[#1e2638] bg-[#151a26] text-amber-300' },
-    { name: 'Z4', label: 'Tiro Longo', minPct: 0.80, maxPct: 0.90, colorClass: 'border-[#1e2638] bg-[#151a26] text-orange-300' },
-    { name: 'Z5', label: 'VO2 Máx', minPct: 0.90, maxPct: 1.00, colorClass: 'border-[#1e2638] bg-[#151a26] text-rose-400' },
+    { name: 'Z1', label: 'Recuperação', minPct: 0.50, maxPct: 0.60, colorClass: 'border-white/[0.08] bg-[#161b26] text-blue-400' },
+    { name: 'Z2', label: 'Base Aeróbica (Alvo TAF)', minPct: 0.60, maxPct: 0.70, colorClass: 'border-emerald-500/50 bg-emerald-500/15 text-emerald-300 shadow-sm' },
+    { name: 'Z3', label: 'Ritmo Limiar', minPct: 0.70, maxPct: 0.80, colorClass: 'border-white/[0.08] bg-[#161b26] text-amber-300' },
+    { name: 'Z4', label: 'Tiro Longo', minPct: 0.80, maxPct: 0.90, colorClass: 'border-white/[0.08] bg-[#161b26] text-orange-300' },
+    { name: 'Z5', label: 'VO2 Máx', minPct: 0.90, maxPct: 1.00, colorClass: 'border-white/[0.08] bg-[#161b26] text-rose-400' },
   ];
 
   const zoneResults = zones.map(z => {
@@ -1484,10 +1510,10 @@ function calculateHeartZones() {
   const container = document.getElementById('zones-cards-container');
   if (container) {
     container.innerHTML = zoneResults.map(z => `
-      <div class="p-2 rounded border ${z.colorClass}">
-        <span class="text-[9px] font-bold uppercase block">${z.name}</span>
-        <div class="text-xs font-bold font-mono my-0.5">${z.minBpm}-${z.maxBpm} bpm</div>
-        <span class="text-[9px] text-slate-400 block">${z.label}</span>
+      <div class="p-3 rounded-xl border ${z.colorClass} transition">
+        <span class="text-[10px] font-bold uppercase block tracking-wider">${z.name}</span>
+        <div class="text-sm font-bold font-mono my-1">${z.minBpm}-${z.maxBpm} bpm</div>
+        <span class="text-[10px] opacity-80 block truncate">${z.label}</span>
       </div>
     `).join('');
   }

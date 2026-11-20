@@ -1,85 +1,259 @@
-/* Design System Profissional - TAF Protocolo Soviético (Estilo Minimalista Atlético) */
+/* ==========================================================================
+   TAF PROTOCOLO SOVIÉTICO — DESIGN SYSTEM PROFISSIONAL v4.0
+   Estética Esportiva Premium (Apple Fitness / Strava / Nike Training / Whoop)
+   Substituição total da "estética de IA": clean, focado, funcional e moderno.
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap');
+
 :root {
-  --bg-main: #090b10;
-  --bg-card: #10141e;
-  --bg-card-subtle: #151a26;
-  --border-color: #1e2638;
-  --border-focus: #3b82f6;
+  --bg-base: #090b10;
+  --bg-surface: #11141d;
+  --bg-surface-elevated: #161b26;
+  --bg-surface-hover: #1c2230;
+  
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-medium: rgba(255, 255, 255, 0.12);
+  --border-highlight: rgba(255, 255, 255, 0.20);
+
+  /* Identidade Visual Volt / Esmeralda Atlética */
+  --accent-volt: #b8ff00;
+  --accent-volt-subtle: rgba(184, 255, 0, 0.12);
+  --accent-volt-border: rgba(184, 255, 0, 0.35);
+  --accent-volt-hover: #a3e600;
+
+  --accent-emerald: #10b981;
+  --accent-rose: #f43f5e;
+  --accent-sky: #38bdf8;
+  --accent-amber: #f59e0b;
+  --accent-purple: #a855f7;
+
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
-  --accent-red: #e11d48;
-  --accent-emerald: #10b981;
-  --accent-amber: #f59e0b;
+  
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+}
+
+/* Base */
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background-color: var(--bg-main);
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-base);
   color: var(--text-primary);
   min-height: 100vh;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Painéis e Cards Limpos */
+/* Números Tabulares (Garante alinhamento perfeito de cronômetro, reps e métricas) */
+.font-mono, .font-mono-numbers {
+  font-family: 'JetBrains Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Cards & Superfícies */
 .card-clean {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-clean:hover {
+  border-color: var(--border-medium);
 }
 
 .card-subtle {
-  background: var(--bg-card-subtle);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
 }
 
-/* Tipografia de Números Tabulares para Cronômetro e Séries */
-.font-mono-numbers {
-  font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
-  font-feature-settings: "tnum";
-  font-variant-numeric: tabular-nums;
+.card-hero {
+  background: linear-gradient(145deg, #131722 0%, #10131b 100%);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
 }
 
-/* Transições de botões */
+.card-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-volt), transparent);
+  opacity: 0.8;
+}
+
+/* Botões Táteis com Feedback Físico */
 .btn-athletic {
-  transition: background-color 0.15s ease, transform 0.1s ease, border-color 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  border-radius: var(--radius-md);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
-}
-.btn-athletic:active {
-  transform: scale(0.98);
+  cursor: pointer;
 }
 
-/* Tabs Limpas */
+.btn-athletic:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background-color: var(--accent-volt);
+  color: #0a0d02;
+  box-shadow: 0 4px 14px rgba(184, 255, 0, 0.25);
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-volt-hover);
+  box-shadow: 0 6px 20px rgba(184, 255, 0, 0.35);
+}
+
+.btn-secondary {
+  background-color: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+  background-color: var(--bg-surface-hover);
+  border-color: var(--border-medium);
+}
+
+/* Segmented Control (Alternador estilo iOS / Mac) */
+.segmented-control {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  display: inline-flex;
+  gap: 3px;
+}
+
+.segmented-control button {
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+  border: none;
+  background: transparent;
+}
+
+.segmented-control button.active {
+  background: var(--bg-base);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-subtle);
+}
+
+/* Tabs & Conteúdo */
 .tab-content {
   display: none;
+  animation: fadeIn 0.25s ease-out;
 }
+
 .tab-content.active {
   display: block;
 }
 
-.nav-tab-clean {
-  transition: color 0.15s ease, border-color 0.15s ease;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Scrollbar sutil */
+/* Bottom Navigation Bar (Mobile Ergonômica) */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: rgba(9, 11, 16, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border-subtle);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 8px;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex: 1;
+  height: 100%;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  transition: color 0.15s ease;
+  user-select: none;
+}
+
+.bottom-nav-item.active {
+  color: var(--accent-volt);
+}
+
+.bottom-nav-item.active i,
+.bottom-nav-item.active svg {
+  stroke: var(--accent-volt);
+  filter: drop-shadow(0 0 6px rgba(184, 255, 0, 0.4));
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Scrollbar Sutil */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-main);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 
-/* Animações sutis e funcionais */
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
+/* Status Dot Pulsante */
 .animate-status-dot {
-  animation: pulse-dot 2s infinite ease-in-out;
+  animation: pulse-dot 2.5s infinite ease-in-out;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.9); }
 }
