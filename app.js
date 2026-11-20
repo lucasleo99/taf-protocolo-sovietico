@@ -24,6 +24,8 @@ const AppState = {
     0: { ficha: 'ASS', name: 'Domingo', title: 'Longão', badge: 'Longão', badgeSub: 'Assessoria', label: 'Corrida Longão (Endurance / Base Aeróbica)', type: 'assessoria', hasLegs: false, detail: 'Treino longo com a Assessoria para construir resistência e fôlego para o TAF.' }
   },
   currentFicha: 'A',
+  selectedDay: new Date().getDay(),
+  selectedFichaOverride: null,
   targets: {
     A: {
       barraReps: 1,
@@ -92,101 +94,488 @@ function releaseWakeLock() {
 // PLANNER SEMANAL AUTOMÁTICO ("TREINO DE HOJE")
 // ============================================================
 
-function renderWeeklyPlanner() {
-  const container = document.getElementById('weekly-planner-container');
+// ============================================================
+// PLANNER SEMANAL & HERO CARD DO TREINO (DESIGN ATLETA UNIFICADO)
+// ============================================================
+
+function renderWeeklyDaysRow() {
+  const container = document.getElementById('weekly-days-row');
   if (!container) return;
 
   const now = new Date();
-  const todayDay = now.getDay(); // 0 = Domingo, 1 = Segunda, etc.
-  const todayStr = now.toISOString().split('T')[0];
-
-  // Checar se já fez treino hoje
-  const workoutToday = AppState.history.find(h => h.date === todayStr);
-
-  const daysOrder = [1, 2, 3, 4, 5, 6, 0]; // Começa na Segunda e termina no Domingo
+  const todayDay = now.getDay();
+  const daysOrder = [1, 2, 3, 4, 5, 6, 0];
   const dayNamesShort = { 1: 'Seg', 2: 'Ter', 3: 'Qua', 4: 'Qui', 5: 'Sex', 6: 'Sáb', 0: 'Dom' };
 
-  const currentPlan = AppState.schedule[todayDay] || { ficha: 'A', name: 'Hoje', label: 'Treino', type: 'workout' };
+  if (AppState.selectedDay === undefined || AppState.selectedDay === null) {
+    AppState.selectedDay = todayDay;
+  }
 
-  container.innerHTML = `
-    <!-- Topo do Hero Card: Foco Atlético -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
-      <div class="space-y-1">
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-[#b8ff00]/15 text-[#b8ff00] font-mono">
-            Hoje • ${currentPlan.name}
-          </span>
-          ${currentPlan.hasLegs ? `
-            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 font-mono flex items-center gap-1">
-              <i data-lucide="shield" class="w-3 h-3 text-amber-400"></i> + Pernas (25m)
-            </span>
-          ` : ''}
+  container.innerHTML = daysOrder.map(d => {
+    const item = AppState.schedule[d];
+    const isToday = d === todayDay;
+    const isSelected = (!AppState.selectedFichaOverride && d === AppState.selectedDay);
+    const shortName = dayNamesShort[d];
+    const badgeTitle = item.badge || item.ficha;
+    const badgeSub = item.badgeSub || '';
+
+    let cardClass = "border-white/[0.08] bg-[#11141d] text-slate-400 hover:border-white/[0.2] hover:bg-[#161b26]";
+    if (isSelected) {
+      cardClass = "border-[#b8ff00] bg-[#b8ff00]/15 text-white ring-1 ring-[#b8ff00]/40 shadow-[0_0_15px_rgba(184,255,0,0.15)]";
+    } else if (isToday) {
+      cardClass = "border-white/30 bg-white/[0.06] text-white";
+    }
+
+    return `
+      <button onclick="selectDaySchedule(${d})" class="p-2 sm:p-2.5 rounded-xl border ${cardClass} text-left transition flex flex-col justify-between overflow-hidden cursor-pointer group">
+        <div class="flex justify-between items-center text-[10px] font-bold uppercase w-full font-mono">
+          <span class="${isSelected ? 'text-[#b8ff00] font-black' : isToday ? 'text-white font-bold' : 'text-slate-400'}">${shortName}</span>
+          ${isToday ? `<span class="w-1.5 h-1.5 rounded-full bg-[#b8ff00] ${isSelected ? 'animate-pulse' : ''}" title="Hoje"></span>` : ''}
         </div>
-        <h2 class="text-xl md:text-2xl font-black text-white tracking-tight">
-          ${currentPlan.label}
-        </h2>
-        <p class="text-xs text-slate-400 leading-relaxed max-w-xl">
-          ${currentPlan.detail}
-        </p>
+        <div class="mt-1">
+          <div class="text-[11px] font-bold ${isSelected ? 'text-white' : 'text-slate-300'} truncate">${badgeTitle}</div>
+          ${badgeSub ? `<div class="text-[9px] ${item.hasLegs ? 'text-amber-300 font-semibold' : 'text-slate-500'} truncate mt-0.5">${badgeSub}</div>` : ''}
+        </div>
+      </button>
+    `;
+  }).join('');
+}
+
+function selectDaySchedule(dayNumber) {
+  AppState.selectedDay = dayNumber;
+  AppState.selectedFichaOverride = null;
+  renderWeeklyDaysRow();
+  renderCurrentWorkout();
+}
+
+function selectFicha(fichaKey) {
+  AppState.selectedFichaOverride = fichaKey;
+  AppState.currentFicha = fichaKey;
+  renderWeeklyDaysRow();
+  renderCurrentWorkout(fichaKey);
+}
+
+function renderWeeklyPlanner() {
+  renderWeeklyDaysRow();
+  renderCurrentWorkout();
+}
+
+function renderFichaCard(fichaKey) {
+  if (fichaKey) AppState.selectedFichaOverride = fichaKey;
+  renderWeeklyDaysRow();
+  renderCurrentWorkout(fichaKey);
+}
+
+function renderCurrentWorkout(fichaKeyOverride) {
+  const container = document.getElementById('single-workout-card');
+  if (!container) return;
+
+  const now = new Date();
+  const todayDay = now.getDay();
+  const todayStr = now.toISOString().split('T')[0];
+  const workoutToday = AppState.history.find(h => h.date === todayStr);
+
+  const activeFicha = fichaKeyOverride || AppState.selectedFichaOverride;
+  let currentPlan;
+  let isToday = false;
+
+  if (activeFicha) {
+    if (activeFicha === 'A') {
+      currentPlan = { ficha: 'A', name: 'Ficha A (Barra)', title: 'Ficha A', label: 'Barra Fixa + Abdominal Remador', type: 'workout', hasLegs: (AppState.selectedDay === 5), detail: 'EMOM 40 min alternando Barra Fixa e Abdominal Remador + Dead Hang 2x 30s.' };
+    } else if (activeFicha === 'B') {
+      currentPlan = { ficha: 'B', name: 'Ficha B (Tiros)', title: 'Ficha B', label: 'Corrida Intervalada (Tiros para VO2 Máx)', type: 'workout', hasLegs: false, detail: '52 min com blocos de alta intensidade para elevar seu VO2 Máx nos 2.400m.' };
+    } else if (activeFicha === 'C') {
+      currentPlan = { ficha: 'C', name: 'Ficha C (Flexão)', title: 'Ficha C', label: 'Flexão de Braço (20 min EMOM) + Trote Z2', type: 'workout', hasLegs: false, detail: 'EMOM 20 min de flexão técnica submáxima (20 séries).' };
+    } else if (activeFicha === 'NC') {
+      currentPlan = { ficha: 'NC', name: 'Transição NC', title: 'Não-Corredor', label: 'Transição Aeróbica (Trote + Caminhada)', type: 'workout', hasLegs: false, detail: 'EMOM progressivo de corrida/caminhada para construir fôlego contínuo.' };
+    }
+  } else {
+    currentPlan = AppState.schedule[AppState.selectedDay] || AppState.schedule[1];
+    isToday = (AppState.selectedDay === todayDay);
+  }
+
+  const fKey = currentPlan.ficha;
+
+  // Header do Hero com Alternador Rápido de Fichas
+  let html = `
+    <!-- Barra Superior: Alternador Rápido de Treino -->
+    <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/[0.08]">
+      <div class="flex items-center gap-1.5 overflow-x-auto py-0.5 max-w-full">
+        <button onclick="selectDaySchedule(${AppState.selectedDay || todayDay})" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${!AppState.selectedFichaOverride ? 'bg-[#b8ff00] text-black shadow-md' : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'}">
+          <i data-lucide="calendar" class="w-3.5 h-3.5"></i> Dia Escolhido
+        </button>
+        <button onclick="selectFicha('A')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition ${AppState.selectedFichaOverride === 'A' ? 'bg-[#b8ff00] text-black shadow-md' : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'}">
+          Ficha A (Barra)
+        </button>
+        <button onclick="selectFicha('B')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition ${AppState.selectedFichaOverride === 'B' ? 'bg-[#b8ff00] text-black shadow-md' : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'}">
+          Ficha B (Tiros)
+        </button>
+        <button onclick="selectFicha('C')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition ${AppState.selectedFichaOverride === 'C' ? 'bg-[#b8ff00] text-black shadow-md' : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'}">
+          Ficha C (Flexão)
+        </button>
+        <button onclick="selectFicha('NC')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition ${AppState.selectedFichaOverride === 'NC' ? 'bg-[#b8ff00] text-black shadow-md' : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'}">
+          Transição (Corrida)
+        </button>
       </div>
 
-      <!-- Ação Principal de Destaque -->
-      <div class="flex items-center gap-2 flex-shrink-0">
-        ${currentPlan.hasLegs ? `
-          <button onclick="openLegsModal()" class="btn-athletic btn-secondary px-3 py-2.5 text-xs font-bold text-amber-300 border-amber-500/30">
-            <i data-lucide="shield" class="w-3.5 h-3.5"></i> Ver Pernas
-          </button>
-        ` : ''}
-
-        ${workoutToday ? `
-          <div class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-4 py-2.5 rounded-xl font-mono">
-            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> Treino Concluído
-          </div>
-        ` : currentPlan.type === 'rest' ? `
-          <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 bg-white/5 border border-white/[0.08] px-4 py-2.5 rounded-xl font-mono">
-            <i data-lucide="coffee" class="w-4 h-4 text-slate-400"></i> Descanso
-          </div>
-        ` : `
-          <button onclick="startTodayPlan()" class="btn-athletic btn-primary px-5 py-2.5 text-xs font-extrabold shadow-lg">
-            <i data-lucide="play" class="w-4 h-4"></i> Iniciar no Timer
-          </button>
-        `}
-      </div>
-    </div>
-
-    <!-- Régua Semanal dos 7 Dias (Minimalista & Esportiva) -->
-    <div class="space-y-1.5 pt-1">
-      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Cronograma Semanal</span>
-      <div class="grid grid-cols-7 gap-1.5 text-center font-mono">
-        ${daysOrder.map(d => {
-          const item = AppState.schedule[d];
-          const isToday = d === todayDay;
-          const shortName = dayNamesShort[d];
-          const badgeTitle = item.badge || item.ficha;
-          const badgeSub = item.badgeSub || '';
-
-          let cardClass = "border-white/[0.07] bg-white/[0.03] text-slate-400 hover:border-white/[0.2] hover:bg-white/[0.06]";
-          if (isToday) {
-            cardClass = "border-[#b8ff00] bg-[#b8ff00]/10 text-white ring-1 ring-[#b8ff00]/40";
-          }
-
-          return `
-            <button onclick="selectDaySchedule(${d})" class="p-2 rounded-xl border ${cardClass} text-left transition flex flex-col justify-between overflow-hidden">
-              <div class="flex justify-between items-center text-[10px] font-bold uppercase w-full">
-                <span class="${isToday ? 'text-[#b8ff00] font-black' : 'text-slate-400'}">${shortName}</span>
-                ${isToday ? `<span class="w-1.5 h-1.5 rounded-full bg-[#b8ff00] animate-pulse"></span>` : ''}
-              </div>
-              <div class="mt-1.5">
-                <div class="text-[11px] font-bold text-white truncate">${badgeTitle}</div>
-                ${badgeSub ? `<div class="text-[9px] ${item.hasLegs ? 'text-amber-300 font-semibold' : 'text-slate-400'} truncate mt-0.5">${badgeSub}</div>` : ''}
-              </div>
-            </button>
-          `;
-        }).join('')}
-      </div>
+      ${currentPlan.hasLegs ? `
+        <button onclick="openLegsModal()" class="btn-athletic px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5">
+          <i data-lucide="shield" class="w-3.5 h-3.5 text-amber-400"></i> Ver Pernas (25m)
+        </button>
+      ` : ''}
     </div>
   `;
 
+  // Renderizar o Conteúdo Conforme o Treino
+  if (fKey === 'A') {
+    const t = AppState.targets.A;
+    html += `
+      <div class="space-y-6 pt-2">
+        <!-- Topo da Ficha A -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="space-y-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#b8ff00]/15 text-[#b8ff00] border border-[#b8ff00]/30">
+                ${isToday ? 'HOJE • ' : ''}${currentPlan.name.toUpperCase()}
+              </span>
+              <span class="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/5 text-slate-300 border border-white/[0.08]">
+                Duração Total: ~65 min
+              </span>
+              ${currentPlan.hasLegs ? `
+                <span class="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                  + Fortalecimento de Pernas
+                </span>
+              ` : ''}
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              Ficha A — Força & Volume de Barra
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-2xl">
+              EMOM 40 min alternando Barra Fixa e Abdominal Remador com recuperação submáxima.
+            </p>
+          </div>
+
+          <!-- Ação Principal ÚNICA -->
+          <div class="flex items-center gap-2.5 flex-shrink-0">
+            <button onclick="openManualModal('A')" class="btn-athletic btn-secondary px-4 py-3 text-xs font-bold text-slate-300">
+              <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Manual
+            </button>
+            ${workoutToday && isToday ? `
+              <div class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-5 py-3 rounded-xl font-mono">
+                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> Treino Feito Hoje
+              </div>
+            ` : `
+              <button onclick="launchWorkoutTimer('A')" class="btn-athletic btn-primary px-6 py-3 text-xs font-black shadow-lg">
+                <i data-lucide="play" class="w-4 h-4"></i> Iniciar no Timer
+              </button>
+            `}
+          </div>
+        </div>
+
+        <!-- 4 KPIS da Sessão -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-mono">
+          <div class="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+            <span class="text-[10px] text-slate-400 block uppercase font-sans font-medium">Bloco Principal</span>
+            <span class="text-white font-bold text-sm mt-0.5 block">40 min EMOM</span>
+            <span class="text-[10px] text-[#b8ff00]">20 séries / exercício</span>
+          </div>
+          <div class="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+            <span class="text-[10px] text-slate-400 block uppercase font-sans font-medium">Barra Fixa / min</span>
+            <span class="text-white font-bold text-sm mt-0.5 block">${t.barraReps} rep</span>
+            <span class="text-[10px] text-slate-400 truncate block">${getAssistanceLabel(t.barraMod, t.barraExtraKg)}</span>
+          </div>
+          <div class="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+            <span class="text-[10px] text-slate-400 block uppercase font-sans font-medium">Abdominal / min</span>
+            <span class="text-white font-bold text-sm mt-0.5 block">${t.abdReps} reps</span>
+            <span class="text-[10px] text-slate-400 block">Remador Oficial</span>
+          </div>
+          <div class="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+            <span class="text-[10px] text-slate-400 block uppercase font-sans font-medium">Volume Estimado</span>
+            <span class="text-white font-bold text-sm mt-0.5 block">${t.barraReps * 19}+ falha</span>
+            <span class="text-[10px] text-amber-300 block">Min 39 e 40: AMRAP</span>
+          </div>
+        </div>
+
+        <!-- Roteiro da Sessão (Cards Limpos e Visuais) -->
+        <div class="space-y-2.5">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider font-mono block">Roteiro Completo</span>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs">
+            <div class="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-white flex items-center gap-1.5 font-mono text-xs">
+                  <span class="w-5 h-5 rounded-md bg-amber-500/20 text-amber-400 flex items-center justify-center text-[10px] font-bold">1</span>
+                  Pré-Ativação (3 min)
+                </span>
+                <span class="text-[10px] font-mono text-slate-400">Antes</span>
+              </div>
+              <p class="text-xs text-slate-300">
+                <strong class="text-white">3x Excêntricas de 5s</strong> sem elástico. Salte para o topo da barra e desça freando lentamente.
+              </p>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-[#b8ff00]/[0.04] border border-[#b8ff00]/20 space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-white flex items-center gap-1.5 font-mono text-xs">
+                  <span class="w-5 h-5 rounded-md bg-[#b8ff00]/20 text-[#b8ff00] flex items-center justify-center text-[10px] font-bold">2</span>
+                  EMOM 40 min
+                </span>
+                <span class="text-[10px] font-mono text-[#b8ff00]">Timer Guiado</span>
+              </div>
+              <p class="text-xs text-slate-300">
+                Ímpares: <strong class="text-white">1 Barra Fixa</strong> (${getAssistanceLabel(t.barraMod, t.barraExtraKg)})<br>
+                Pares: <strong class="text-white">${t.abdReps} Abdominais Remador</strong><br>
+                <span class="text-amber-300 font-medium">Min 39 e 40: AMRAP até a falha técnica</span>
+              </p>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-white flex items-center gap-1.5 font-mono text-xs">
+                  <span class="w-5 h-5 rounded-md bg-sky-500/20 text-sky-400 flex items-center justify-center text-[10px] font-bold">3</span>
+                  Pegada & Finalização
+                </span>
+                <span class="text-[10px] font-mono text-slate-400">Pós-EMOM</span>
+              </div>
+              <p class="text-xs text-slate-300">
+                <strong class="text-white">2x 30s Dead Hang</strong> para blindar a pegada.<br>
+                ${currentPlan.hasLegs ? '<span class="text-amber-300 font-semibold">+ 25 min Fortalecimento de Pernas</span>' : '+ 20 min Corrida contínua leve em Z2.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Seletor Discreto de Carga e Assistência -->
+        <div class="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div class="flex flex-wrap items-center gap-3">
+            <span class="text-slate-400 font-mono text-xs">Assistência:</span>
+            <select id="select-ficha-a-mod" onchange="updateFichaAMod(this.value)" class="bg-[#11141d] border border-white/[0.1] text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none font-bold">
+              <option value="roxa" ${t.barraMod === 'roxa' ? 'selected' : ''}>Superband Roxa</option>
+              <option value="verde" ${t.barraMod === 'verde' ? 'selected' : ''}>Superband Verde</option>
+              <option value="vermelha" ${t.barraMod === 'vermelha' ? 'selected' : ''}>Superband Vermelha</option>
+              <option value="livre" ${t.barraMod === 'livre' ? 'selected' : ''}>Barra Livre (Sem Elástico)</option>
+              <option value="excentrica" ${t.barraMod === 'excentrica' ? 'selected' : ''}>Excêntrica Lenta (4s)</option>
+              <option value="colete" ${t.barraMod === 'colete' ? 'selected' : ''}>Colete de Peso</option>
+            </select>
+
+            <div class="flex items-center gap-1">
+              <span class="text-slate-400 font-mono text-xs">Carga Extra:</span>
+              <div class="flex items-center bg-[#11141d] border border-white/[0.1] rounded-lg px-2 py-1">
+                <input type="number" min="0" step="1" id="input-barra-extra" value="${t.barraExtraKg || 0}" onchange="updateBarraExtraKg(this.value)" class="w-10 bg-transparent text-white font-mono text-xs focus:outline-none text-center">
+                <span class="text-[10px] text-slate-400">kg</span>
+              </div>
+            </div>
+          </div>
+
+          <span class="text-slate-400 font-mono text-[11px]">
+            Volume de Barra: <strong class="text-white">${t.barraReps * 19}+ falha</strong>
+          </span>
+        </div>
+      </div>
+    `;
+  } else if (fKey === 'B') {
+    const t = AppState.targets.B;
+    html += `
+      <div class="space-y-6 pt-2">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="space-y-1">
+            <span class="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
+              ${isToday ? 'HOJE • ' : ''}FICHA B • DURAÇÃO: 52 MINUTOS
+            </span>
+            <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              Corrida Intervalada (Tiros para VO2 Máx)
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-2xl">
+              Protocolo para aumentar o consumo máximo de oxigênio e diminuir o pace na corrida de 12 minutos.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2.5 flex-shrink-0">
+            <button onclick="openManualModal('B')" class="btn-athletic btn-secondary px-4 py-3 text-xs font-bold text-slate-300">
+              <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Registrar Tiro
+            </button>
+            <button onclick="switchTab('garmin')" class="btn-athletic btn-primary px-6 py-3 text-xs font-black shadow-lg">
+              <i data-lucide="watch" class="w-4 h-4"></i> Ver Zonas Garmin
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400 text-xs font-mono">Formato do Tiro:</span>
+          <div class="segmented-control text-xs font-mono">
+            <button onclick="setBType('B1')" class="${t.type === 'B1' ? 'active' : ''}">
+              B.1 Curto (20x 30" / 90")
+            </button>
+            <button onclick="setBType('B2')" class="${t.type === 'B2' ? 'active' : ''}">
+              B.2 Longo (8x 2' / 3')
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs font-mono">
+          <div class="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+            <span class="text-[10px] text-slate-500 uppercase block font-sans">Etapa 1</span>
+            <div class="text-white font-bold text-xs mt-0.5">5 min Aquecimento</div>
+            <span class="text-[10px] text-slate-400">Trote leve em Z2</span>
+          </div>
+          <div class="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+            <span class="text-[10px] text-slate-500 uppercase block font-sans">Etapa 2</span>
+            <div class="text-white font-bold text-xs mt-0.5">2 min Transição</div>
+            <span class="text-[10px] text-slate-400">Caminhada de preparação</span>
+          </div>
+          <div class="p-3 rounded-xl bg-[#b8ff00]/[0.05] border border-[#b8ff00]/30 text-[#b8ff00]">
+            <span class="text-[10px] text-[#b8ff00] uppercase block font-sans font-bold">Etapa 3 (Principal)</span>
+            <div class="font-bold text-xs mt-0.5">${t.type === 'B1' ? '20 Tiros (30" tiro / 90" andada)' : '8 Tiros (2 min forte / 3 min andada)'}</div>
+            <span class="text-[10px] text-slate-300">Z4/Z5 (Forte)</span>
+          </div>
+          <div class="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+            <span class="text-[10px] text-slate-500 uppercase block font-sans">Etapa 4</span>
+            <div class="text-white font-bold text-xs mt-0.5">5 min Volta à Calma</div>
+            <span class="text-[10px] text-slate-400">Caminhada em Z1/Z2</span>
+          </div>
+        </div>
+      </div>
+    `;
+  } else if (fKey === 'C') {
+    const t = AppState.targets.C;
+    html += `
+      <div class="space-y-6 pt-2">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="space-y-1">
+            <span class="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-400 border border-sky-500/30">
+              ${isToday ? 'HOJE • ' : ''}FICHA C • DURAÇÃO: 20 A 60 MIN
+            </span>
+            <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              Flexão de Braço (20 min EMOM) + Corrida
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-2xl">
+              20 minutos EMOM acumulando repetições perfeitas de flexão sem fadiga e sem queimar o peitoral.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2.5 flex-shrink-0">
+            <button onclick="openManualModal('C')" class="btn-athletic btn-secondary px-4 py-3 text-xs font-bold text-slate-300">
+              <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Manual
+            </button>
+            <button onclick="launchWorkoutTimer('C')" class="btn-athletic btn-primary px-6 py-3 text-xs font-black shadow-lg">
+              <i data-lucide="play" class="w-4 h-4"></i> Iniciar no Timer
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-mono">
+          <div class="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+            <span class="text-[10px] text-slate-400 block uppercase font-sans font-medium">Bloco Principal</span>
+            <span class="text-white font-bold text-sm mt-0.5 block">20 min EMOM</span>
+            <span class="text-[10px] text-sky-400">20 séries de flexão</span>
+          </div>
+          <div class="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+            <span class="text-[10px] text-slate-400 block uppercase font-sans font-medium">Flexão / minuto</span>
+            <span class="text-white font-bold text-sm mt-0.5 block">${t.flexaoReps} reps</span>
+            <span class="text-[10px] text-slate-400">Executa em ~5s</span>
+          </div>
+          <div class="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+            <span class="text-[10px] text-slate-400 block uppercase font-sans font-medium">Volume Total</span>
+            <span class="text-white font-bold text-sm mt-0.5 block">${t.flexaoReps * 19}+ falha</span>
+            <span class="text-[10px] text-amber-300">Min 20: AMRAP</span>
+          </div>
+          <div class="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+            <span class="text-[10px] text-slate-400 block uppercase font-sans font-medium">Pós-Treino</span>
+            <span class="text-white font-bold text-sm mt-0.5 block">Corrida Z2</span>
+            <span class="text-[10px] text-slate-400">20 a 40 min leve</span>
+          </div>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-xs text-slate-300 leading-relaxed">
+          <strong class="text-white font-bold block mb-1">Execução do Protocolo:</strong>
+          A cada minuto no relógio, faça <strong>${t.flexaoReps} flexões completas</strong> tocando o peito no chão e estendendo os cotovelos. Descanse os ~55s restantes. No 20º minuto, execute até a falha técnica para calcular o aumento do próximo ciclo!
+        </div>
+      </div>
+    `;
+  } else if (fKey === 'NC') {
+    const t = AppState.targets.NC;
+    html += `
+      <div class="space-y-6 pt-2">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="space-y-1">
+            <span class="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+              TRANSIÇÃO NÃO-CORREDOR
+            </span>
+            <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              EMOM Trote + Caminhada
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-2xl">
+              Para atletas em adaptação que ainda não correm 12 minutos contínuos.
+            </p>
+          </div>
+
+          <button onclick="launchWorkoutTimer('NC')" class="btn-athletic btn-primary px-6 py-3 text-xs font-black shadow-lg">
+            <i data-lucide="play" class="w-4 h-4"></i> Iniciar no Timer
+          </button>
+        </div>
+
+        <div class="p-4 rounded-xl bg-[#11141d] border border-white/[0.08] text-xs font-mono text-slate-300">
+          A cada virada de minuto: <strong class="text-[#b8ff00]">${t.troteSec}s de trote suave</strong> + <strong class="text-slate-400">${60 - t.troteSec}s de caminhada</strong>. No minuto final, trote contínuo até a falha para subir o nível.
+        </div>
+      </div>
+    `;
+  } else if (currentPlan.type === 'assessoria') {
+    html += `
+      <div class="space-y-6 pt-2">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="space-y-1">
+            <span class="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-400 border border-sky-500/30">
+              ${isToday ? 'HOJE • ' : ''}${currentPlan.name.toUpperCase()}
+            </span>
+            <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              ${currentPlan.label}
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-2xl">
+              ${currentPlan.detail}
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2.5 flex-shrink-0">
+            ${currentPlan.hasLegs ? `
+              <button onclick="openLegsModal()" class="btn-athletic btn-secondary px-4 py-3 text-xs font-bold text-amber-300 border-amber-500/30">
+                <i data-lucide="shield" class="w-3.5 h-3.5"></i> Rotina de Pernas
+              </button>
+            ` : ''}
+            <button onclick="switchTab('garmin')" class="btn-athletic btn-primary px-6 py-3 text-xs font-black shadow-lg">
+              <i data-lucide="watch" class="w-4 h-4"></i> Ver Zonas Garmin
+            </button>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] text-xs text-slate-300 space-y-2">
+          <div class="text-[#b8ff00] font-bold font-mono text-xs uppercase flex items-center gap-1.5">
+            <i data-lucide="info" class="w-4 h-4"></i> Prescrição de Corrida:
+          </div>
+          <p>
+            Execute a planilha enviada pela assessoria de corrida no Garmin Connect / TrainingPeaks. Monitore sua frequência cardíaca pelas zonas calculadas na aba <strong>Evolução & Garmin</strong>.
+          </p>
+        </div>
+      </div>
+    `;
+  } else {
+    // Descanso
+    html += `
+      <div class="space-y-4 pt-2">
+        <div class="space-y-1">
+          <span class="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/10 text-slate-300">
+            ${isToday ? 'HOJE • ' : ''}RECUPERAÇÃO ATIVA
+          </span>
+          <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            Descanso Programado
+          </h1>
+          <p class="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-2xl">
+            A recuperação é onde ocorre a supercompensação. Os tendões absorvem a carga das 20 séries sem risco de tendinite.
+          </p>
+        </div>
+      </div>
+    `;
+  }
+
+  container.innerHTML = html;
   if (window.lucide) lucide.createIcons();
 }
 
@@ -194,42 +583,18 @@ function startTodayPlan() {
   const now = new Date();
   const todayDay = now.getDay();
   const currentPlan = AppState.schedule[todayDay];
-
   if (!currentPlan) return;
 
   if (currentPlan.ficha === 'A' || currentPlan.ficha === 'B' || currentPlan.ficha === 'C') {
     switchTab('treino');
     selectFicha(currentPlan.ficha);
-    document.getElementById('ficha-card-container')?.scrollIntoView({ behavior: 'smooth' });
   } else if (currentPlan.ficha === 'ASS') {
     switchTab('garmin');
-    document.getElementById('assessoria-form')?.scrollIntoView({ behavior: 'smooth' });
   } else {
-    alert("Hoje é dia de descanso programado! A recuperação faz parte essencial do método para os tendões absorverem o volume.");
+    alert("Hoje é dia de descanso programado! A recuperação faz parte essencial do método.");
   }
 }
 
-function selectDaySchedule(dayNumber) {
-  const plan = AppState.schedule[dayNumber];
-  if (!plan) return;
-
-  if (plan.ficha === 'A' || plan.ficha === 'B' || plan.ficha === 'C') {
-    switchTab('treino');
-    selectFicha(plan.ficha);
-    document.getElementById('ficha-card-container')?.scrollIntoView({ behavior: 'smooth' });
-  } else if (plan.ficha === 'ASS') {
-    if (plan.hasLegs) {
-      if (confirm(`${plan.name}: ${plan.label}\n\n• Treino de corrida leve prescrito no Garmin/TrainingPeaks.\n• Bloco de fortalecimento de pernas (25-30 min).\n\nDeseja abrir a rotina de fortalecimento de pernas agora?`)) {
-        openLegsModal();
-        return;
-      }
-    }
-    switchTab('garmin');
-    document.getElementById('assessoria-form')?.scrollIntoView({ behavior: 'smooth' });
-  } else {
-    alert(`${plan.name}: ${plan.label}.\n\n${plan.detail}`);
-  }
-}
 
 function openLegsModal() {
   const modal = document.getElementById('modal-legs');
@@ -243,6 +608,7 @@ function closeLegsModal() {
   const modal = document.getElementById('modal-legs');
   if (modal) modal.classList.add('hidden');
 }
+
 
 // Dead Hang Timer (Resistência de Pegada para o TAF)
 let deadHangInterval = null;
@@ -667,230 +1033,7 @@ function calculateEditalScore() {
 // RENDERIZAÇÃO DAS FICHAS DE TREINO (A, B, C, NC)
 // ============================================================
 
-function selectFicha(fichaKey) {
-  AppState.currentFicha = fichaKey;
-  
-  document.querySelectorAll('.ficha-selector').forEach(btn => {
-    btn.classList.remove('border-rose-500', 'bg-rose-950/20');
-    btn.classList.add('border-[#1e2638]', 'bg-[#10141e]');
-  });
-  const activeBtn = document.getElementById(`btn-ficha-${fichaKey}`);
-  if (activeBtn) {
-    activeBtn.classList.add('border-rose-500', 'bg-rose-950/20');
-    activeBtn.classList.remove('border-[#1e2638]', 'bg-[#10141e]');
-  }
-
-  renderFichaCard(fichaKey);
-}
-
-function renderFichaCard(fichaKey) {
-  const container = document.getElementById('ficha-card-container');
-  if (!container) return;
-
-  const zones = calculateHeartZones();
-  const z2Range = `${zones[1].minBpm}-${zones[1].maxBpm} bpm`;
-  const z3Range = `${zones[2].minBpm}-${zones[2].maxBpm} bpm`;
-
-  if (fichaKey === 'A') {
-    const t = AppState.targets.A;
-    container.innerHTML = `
-      <div class="flex flex-wrap items-center justify-between border-b border-white/[0.08] pb-3 gap-2">
-        <div>
-          <span class="text-[11px] font-mono font-bold text-rose-400 uppercase tracking-wider block">Ficha A • Duração: ~65 Minutos</span>
-          <h2 class="text-base font-extrabold text-white">Barra Fixa + Abdominal + Pegada + Corrida</h2>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="openManualModal('A')" class="btn-athletic btn-secondary px-3 py-1.5 text-xs text-slate-300">
-            Preencher Manual
-          </button>
-          <button onclick="launchWorkoutTimer('A')" class="btn-athletic btn-primary px-4 py-1.5 text-xs font-bold text-black shadow-md">
-            <i data-lucide="play" class="w-3.5 h-3.5"></i> Iniciar no Timer
-          </button>
-        </div>
-      </div>
-
-      <!-- Explicação do Tempo -->
-      <div class="p-3.5 rounded-xl bg-[#161b26] border border-white/[0.08] text-xs space-y-1.5">
-        <div class="flex items-center gap-1.5 text-[#b8ff00] font-bold text-[11px] uppercase tracking-wide">
-          <i data-lucide="info" class="w-3.5 h-3.5 text-[#b8ff00]"></i> Estrutura da Sessão de Força:
-        </div>
-        <p class="text-slate-300 text-[11px] leading-relaxed">
-          O bloco EMOM tem <strong class="text-white">40 minutos de relógio</strong> (revezando a cada virada de minuto):
-        </p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 font-mono text-[11px]">
-          <div class="bg-[#090b10] p-2.5 rounded-lg border border-white/[0.06]">
-            <span class="text-rose-400 font-bold block mb-0.5">Minutos Ímpares (1, 3, 5... 37):</span>
-            <span class="text-white font-bold">1 Barra Fixa</span> (${getAssistanceLabel(t.barraMod, t.barraExtraKg)}). Executa em 3s e descansa o restante do minuto (20 séries).
-          </div>
-          <div class="bg-[#090b10] p-2.5 rounded-lg border border-white/[0.06]">
-            <span class="text-sky-400 font-bold block mb-0.5">Minutos Pares (2, 4, 6... 38):</span>
-            <span class="text-white font-bold">${t.abdReps} Abdominais</span>. Executa em 10s e descansa o restante do minuto (20 séries).
-          </div>
-        </div>
-      </div>
-
-      <!-- 4 Passos -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs font-mono">
-        <div class="card-subtle p-3 border-white/[0.08] bg-[#161b26]">
-          <div class="flex justify-between items-center">
-            <span class="text-[9px] text-amber-400 uppercase font-bold">Passo 1 (3 min)</span>
-            <span class="text-[9px] text-slate-500">Antes</span>
-          </div>
-          <div class="text-white font-bold text-[11px] mt-0.5">3x Excêntricas 5s</div>
-          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">Subida e descida freando em 5s sem elástico.</span>
-        </div>
-
-        <div class="card-subtle p-3 border-white/[0.08] bg-[#161b26]">
-          <div class="flex justify-between items-center">
-            <span class="text-[9px] text-rose-400 uppercase font-bold">Passo 2 (40 min)</span>
-            <span class="text-[9px] text-[#b8ff00] font-bold">Principal</span>
-          </div>
-          <div class="text-white font-bold text-[11px] mt-0.5">EMOM Alternado</div>
-          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">1 Barra / ${t.abdReps} Abd. Minutos 39 e 40 até a falha!</span>
-        </div>
-
-        <div class="card-subtle p-3 border-white/[0.08] bg-[#161b26]">
-          <div class="flex justify-between items-center">
-            <span class="text-[9px] text-sky-400 uppercase font-bold">Passo 3 (2 min)</span>
-            <span class="text-[9px] text-slate-500">Pós-EMOM</span>
-          </div>
-          <div class="text-white font-bold text-[11px] mt-0.5">2x 30s Dead Hang</div>
-          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">Sustentação na barra para blindar a pegada.</span>
-        </div>
-
-        <div class="card-subtle p-3 border-white/[0.08] bg-[#161b26]">
-          <div class="flex justify-between items-center">
-            <span class="text-[9px] text-emerald-400 uppercase font-bold">Passo 4</span>
-            <span class="text-[9px] text-slate-500">${new Date().getDay() === 5 ? 'Sexta' : 'Final'}</span>
-          </div>
-          <div class="text-white font-bold text-[11px] mt-0.5">${new Date().getDay() === 5 ? 'Pernas (25-30m)' : 'Corrida Contínua'}</div>
-          <span class="text-[10px] text-slate-400 font-sans block mt-0.5">${new Date().getDay() === 5 ? 'Búlgaro, panturrilha e tibial na parede.' : '5\' Z2 + 10\' Z3 + 5\' Z2 leve.'}</span>
-        </div>
-      </div>
-
-      <!-- Configuração de Carga e Assistência -->
-      <div class="p-3 rounded-xl bg-[#161b26] border border-white/[0.08] flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div class="flex flex-wrap items-center gap-3">
-          <div class="flex items-center gap-1.5">
-            <span class="text-slate-400 text-[11px]">Tipo de Barra:</span>
-            <select id="select-ficha-a-mod" onchange="updateFichaAMod(this.value)" class="bg-[#090b10] border border-white/[0.1] text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none">
-              <option value="roxa" ${t.barraMod === 'roxa' ? 'selected' : ''}>Superband Roxa</option>
-              <option value="verde" ${t.barraMod === 'verde' ? 'selected' : ''}>Superband Verde</option>
-              <option value="vermelha" ${t.barraMod === 'vermelha' ? 'selected' : ''}>Superband Vermelha</option>
-              <option value="livre" ${t.barraMod === 'livre' ? 'selected' : ''}>Barra Livre (Peso Corporal)</option>
-              <option value="excentrica" ${t.barraMod === 'excentrica' ? 'selected' : ''}>Excêntrica (4s)</option>
-              <option value="colete" ${t.barraMod === 'colete' ? 'selected' : ''}>Sobrecarga / Colete</option>
-            </select>
-          </div>
-
-          <div class="flex items-center gap-1.5">
-            <span class="text-slate-400 text-[11px]">Carga Extra:</span>
-            <div class="flex items-center bg-[#090b10] border border-white/[0.1] rounded-lg px-2.5 py-1">
-              <input type="number" min="0" step="1" id="input-barra-extra" value="${t.barraExtraKg || 0}" onchange="updateBarraExtraKg(this.value)" class="w-12 bg-transparent text-white font-mono text-xs focus:outline-none">
-              <span class="text-[10px] text-slate-400">kg</span>
-            </div>
-          </div>
-        </div>
-
-        <span class="text-slate-400 font-mono text-[11px]">
-          Volume previsto: <strong class="text-white">${t.barraReps * 19}+ falha</strong> barras
-        </span>
-      </div>
-    `;
-  } else if (fichaKey === 'B') {
-    const t = AppState.targets.B;
-    container.innerHTML = `
-      <div class="flex flex-wrap items-center justify-between border-b border-white/[0.08] pb-3 gap-2">
-        <div>
-          <span class="text-[11px] font-mono font-bold text-amber-400 uppercase tracking-wider block">Ficha B • Duração: 52 Minutos</span>
-          <h2 class="text-base font-extrabold text-white">Corrida Intervalada (Tiros para VO2 Máx)</h2>
-        </div>
-        <button onclick="openManualModal('B')" class="btn-athletic btn-secondary px-3 py-1.5 text-xs text-slate-300">
-          Registrar Tiro
-        </button>
-      </div>
-
-      <div class="flex items-center gap-2 mb-1">
-        <span class="text-slate-400 text-xs">Tipo de Treino:</span>
-        <div class="segmented-control text-xs font-mono">
-          <button onclick="setBType('B1')" class="${t.type === 'B1' ? 'active' : ''}">
-            B.1 Curto (30" / 90")
-          </button>
-          <button onclick="setBType('B2')" class="${t.type === 'B2' ? 'active' : ''}">
-            B.2 Longo (2' / 3')
-          </button>
-        </div>
-      </div>
-
-      <div class="card-subtle p-3.5 text-xs space-y-2">
-        <div class="text-[11px] font-bold text-amber-300 uppercase tracking-wide">
-          Linha do Tempo dos 52 Minutos:
-        </div>
-        ${t.type === 'B1' ? `
-          <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 font-mono text-[11px]">
-            <div class="p-2.5 rounded-lg bg-[#090b10] border border-white/[0.06]">1. Aquecimento: 5 min Z2 leve</div>
-            <div class="p-2.5 rounded-lg bg-[#090b10] border border-white/[0.06]">2. Transição: 2 min caminhada</div>
-            <div class="p-2.5 rounded-lg bg-[#090b10] border border-rose-500/30 text-rose-300">3. 20 Tiros: 30" tiro / 90" caminhada</div>
-            <div class="p-2.5 rounded-lg bg-[#090b10] border border-white/[0.06]">4. Volta à calma: 5 min Z2 leve</div>
-          </div>
-        ` : `
-          <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 font-mono text-[11px]">
-            <div class="p-2.5 rounded-lg bg-[#090b10] border border-white/[0.06]">1. Aquecimento: 5 min Z2 leve</div>
-            <div class="p-2.5 rounded-lg bg-[#090b10] border border-white/[0.06]">2. Transição: 2 min caminhada</div>
-            <div class="p-2.5 rounded-lg bg-[#090b10] border border-sky-500/30 text-sky-300">3. 8 Tiros: 2 min forte / 3 min caminhada</div>
-            <div class="p-2.5 rounded-lg bg-[#090b10] border border-white/[0.06]">4. Volta à calma: 5 min Z2 leve</div>
-          </div>
-        `}
-      </div>
-    `;
-  } else if (fichaKey === 'C') {
-    const t = AppState.targets.C;
-    container.innerHTML = `
-      <div class="flex flex-wrap items-center justify-between border-b border-white/[0.08] pb-3 gap-2">
-        <div>
-          <span class="text-[11px] font-mono font-bold text-sky-400 uppercase tracking-wider block">Ficha C • Duração: 20 a 60 Minutos</span>
-          <h2 class="text-base font-extrabold text-white">Flexão de Braço (20 min EMOM) + Trote Z2</h2>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="openManualModal('C')" class="btn-athletic btn-secondary px-3 py-1.5 text-xs text-slate-300">
-            Preencher Manual
-          </button>
-          <button onclick="launchWorkoutTimer('C')" class="btn-athletic btn-primary px-4 py-1.5 text-xs font-bold text-black shadow-md">
-            <i data-lucide="play" class="w-3.5 h-3.5"></i> Iniciar no Timer
-          </button>
-        </div>
-      </div>
-
-      <div class="p-3.5 rounded-xl bg-[#161b26] border border-white/[0.08] text-xs space-y-1.5">
-        <div class="flex items-center gap-1.5 text-sky-300 font-bold text-[11px] uppercase tracking-wide">
-          <i data-lucide="info" class="w-3.5 h-3.5 text-sky-400"></i> Estrutura da Sessão de Flexão:
-        </div>
-        <p class="text-slate-300 text-[11px] leading-relaxed">
-          20 minutos EMOM de Flexão: a cada virada de minuto, faça <strong class="text-white">${t.flexaoReps} flexões</strong> em 5s e descanse o resto do minuto. No 20º minuto, execute até a falha técnica!
-        </p>
-      </div>
-    `;
-  } else if (fichaKey === 'NC') {
-    const t = AppState.targets.NC;
-    container.innerHTML = `
-      <div class="flex flex-wrap items-center justify-between border-b border-white/[0.08] pb-3 gap-2">
-        <div>
-          <span class="text-[11px] font-mono font-bold text-emerald-400 uppercase tracking-wider block">Transição Aeróbica</span>
-          <h2 class="text-base font-extrabold text-white">EMOM Corrida / Caminhada</h2>
-        </div>
-        <button onclick="launchWorkoutTimer('NC')" class="btn-athletic btn-primary px-4 py-1.5 text-xs font-bold text-black shadow-md">
-          <i data-lucide="play" class="w-3.5 h-3.5"></i> Iniciar Timer
-        </button>
-      </div>
-
-      <div class="card-subtle p-3.5 text-xs font-mono text-slate-300">
-        A cada minuto: <strong class="text-[#b8ff00]">${t.troteSec}s de trote</strong> + <strong class="text-slate-400">${60 - t.troteSec}s de caminhada</strong>. No último minuto, trote até a falha.
-      </div>
-    `;
-  }
-
-  if (window.lucide) lucide.createIcons();
-}
+// (renderFichaCard e selectFicha consolidados no Hero Card acima)
 
 function updateFichaAMod(newMod) {
   AppState.targets.A.barraMod = newMod;
